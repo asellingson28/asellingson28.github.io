@@ -19,7 +19,7 @@ function cleanTitle(title) {
 
 async function fetchGenericTitle(url) {
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; aselling.io-footnote-fetcher/1.0)' },
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; asellingson28.github.io-footnote-fetcher/1.0)' },
     signal: AbortSignal.timeout(5000),
   });
   const html = await res.text();
