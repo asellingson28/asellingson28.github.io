@@ -1,0 +1,29 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => data.draft !== true);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <span class="mono-label">
+    {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+  </span>
+  <h1>{post.data.title}</h1>
+  <div class="prose">
+    <Content />
+  </div>
+</BaseLayout>
+
+<style>
+  .prose { max-width: 68ch; }
+  .prose :global(p) { color: var(--color-text); }
+</style>

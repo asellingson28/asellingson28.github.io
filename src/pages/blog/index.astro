@@ -1,8 +1,52 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// getCollection reads every .md file in src/content/blog/ automatically.
+// No manual imports, no glob code — new files just appear here on next build.
+const allPosts = await getCollection('blog', ({ data }) => {
+  return data.draft !== true; // skip anything marked draft: true
+});
+
+const posts = allPosts.sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
 ---
 <BaseLayout title="Writing">
   <span class="mono-label">index / 02</span>
   <h1>Writing</h1>
-  <p style="color: var(--color-text-dim);">Blog post list goes here.</p>
+
+  <ul class="post-list">
+    {posts.map((post) => (
+      <li>
+        <a href={`/blog/${post.id}`}>{post.data.title}</a>
+        <span class="mono-label post-date">
+          {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+        </span>
+        {post.data.description && <p class="post-desc">{post.data.description}</p>}
+      </li>
+    ))}
+  </ul>
+
+  {posts.length === 0 && <p style="color: var(--color-text-dim);">No posts yet.</p>}
 </BaseLayout>
+
+<style>
+  .post-list {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--space-4);
+  }
+  .post-list li {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .post-list a {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--color-text);
+  }
+  .post-list a:hover { color: var(--color-gold-bright); }
+  .post-date { display: block; margin-top: 0.3rem; }
+  .post-desc { color: var(--color-text-dim); margin-top: 0.4rem; }
+</style>
