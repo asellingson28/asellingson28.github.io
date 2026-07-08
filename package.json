@@ -9,12 +9,16 @@
   },
   "dependencies": {
     "astro": "^6.0.5",
-    "install.js": "^1.0.1"
+    "install.js": "^1.0.1",
+    "unist-util-visit": "^5.1.0"
   },
   "allowScripts": {
     "esbuild@0.27.7": true,
     "esbuild@0.28.1": true,
     "fsevents@2.3.3": true,
     "sharp@0.34.5": true
+  },
+  "devDependencies": {
+    "prettier": "^3.9.4"
   }
 }

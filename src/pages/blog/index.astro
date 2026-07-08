@@ -2,8 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-// getCollection reads every .md file in src/content/blog/ automatically.
-// No manual imports, no glob code — new files just appear here on next build.
+// getCollection reads every .md file matched by the loader in content.config.ts
 const allPosts = await getCollection('blog', ({ data }) => {
   return data.draft !== true; // skip anything marked draft: true
 });
@@ -24,6 +23,16 @@ const posts = allPosts.sort(
           {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
         </span>
         {post.data.description && <p class="post-desc">{post.data.description}</p>}
+        {post.data.tags && post.data.tags.length > 0 && (
+          <ul class="tag-list">
+            {post.data.tags.slice(0, 3).map((tag) => (
+              <li class="tag mono-label">{tag}</li>
+            ))}
+            {post.data.tags.length > 3 && (
+              <li class="tag mono-label tag-more">+{post.data.tags.length - 3}</li>
+            )}
+          </ul>
+        )}
       </li>
     ))}
   </ul>
@@ -49,4 +58,22 @@ const posts = allPosts.sort(
   .post-list a:hover { color: var(--color-gold-bright); }
   .post-date { display: block; margin-top: 0.3rem; }
   .post-desc { color: var(--color-text-dim); margin-top: 0.4rem; }
+
+  .tag-list {
+    list-style: none;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0.6rem 0 0;
+  }
+  .tag {
+    color: var(--color-blue-bright);
+    border: 1px solid var(--color-line-bright);
+    border-radius: 3px;
+    padding: 0.15rem 0.5rem;
+  }
+  .tag-more {
+    color: var(--color-text-faint);
+    border-color: var(--color-line);
+  }
 </style>
