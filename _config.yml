@@ -1,0 +1,10 @@
+title: "My Portfolio"
+theme: jekyll-theme-slate
+markdown: kramdown
+
+header_pages:
+  - index.md
+  - combatrobotics.md
+
+# Site settings
+markdown: kramdown

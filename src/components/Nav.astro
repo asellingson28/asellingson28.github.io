@@ -1,0 +1,116 @@
+---
+// Signature element: header styled after a technical drawing's title block —
+// an index of numbered entries with a hairline rule, rather than a generic navbar.
+const navItems = [
+  { n: '01', label: 'Work', href: '/projects' },
+  { n: '02', label: 'Writing', href: '/blog' },
+  { n: '03', label: 'Reading', href: '/books' },
+  { n: '04', label: 'Travels', href: '/travels' },
+  { n: '05', label: 'About', href: '/about' },
+];
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<header class="site-header">
+  <div class="wrap-wide bar">
+    <a href="/" class="mark">
+      <span class="mark-text">ASELLING</span>
+      <span class="mark-sub mono-label">personal index</span>
+    </a>
+
+    <nav aria-label="Primary">
+      <ul>
+        {navItems.map((item) => {
+          const active = path === item.href;
+          return (
+            <li>
+              <a href={item.href} class:list={['nav-link', { active }]} aria-current={active ? 'page' : undefined}>
+                <span class="mono-label nav-n">{item.n}</span>
+                <span class="nav-label">{item.label}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  </div>
+  <div class="rule" aria-hidden="true"></div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(10, 13, 18, 0.92);
+    backdrop-filter: blur(6px);
+  }
+
+  .bar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-top: var(--space-3);
+    padding-bottom: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .mark {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    line-height: 1;
+  }
+  .mark-text {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    letter-spacing: 0.02em;
+    color: var(--color-text);
+  }
+  .mark:hover .mark-text { color: var(--color-gold-bright); }
+  .mark-sub { color: var(--color-text-faint); }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    color: var(--color-text-dim);
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid transparent;
+  }
+  .nav-n { color: var(--color-text-faint); }
+
+  .nav-link:hover {
+    color: var(--color-text);
+    border-bottom-color: var(--color-line-bright);
+  }
+  .nav-link:hover .nav-n { color: var(--color-blue-bright); }
+
+  .nav-link.active {
+    color: var(--color-text);
+    border-bottom-color: var(--color-gold);
+  }
+  .nav-link.active .nav-n { color: var(--color-gold); }
+
+  .rule {
+    height: 1px;
+    background: linear-gradient(90deg, var(--color-gold) 0%, var(--color-line) 18%, var(--color-line) 82%, var(--color-blue) 100%);
+    opacity: 0.6;
+  }
+
+  @media (max-width: 640px) {
+    nav ul { gap: var(--space-2); flex-wrap: wrap; }
+    .nav-label { display: none; }
+    .nav-n { font-size: 0.75rem; }
+  }
+</style>

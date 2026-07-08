@@ -1,0 +1,116 @@
+/* ===========================================================
+   DESIGN TOKENS
+   Direction: technical drafting / blueprint document.
+   Dark ground, hairline gold rules, steel-blue accents,
+   monospace "index" labels used like drawing annotations.
+=========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  /* -- color: ground -- */
+  --color-bg: #0a0d12;
+  --color-bg-elevated: #10141c;
+  --color-bg-inset: #0d1015;
+
+  /* -- color: line work -- */
+  --color-line: #232b38;
+  --color-line-bright: #3a4557;
+
+  /* -- color: accents -- */
+  --color-blue: #4a7fb5;
+  --color-blue-bright: #7fb0e0;
+  --color-gold: #c9a227;
+  --color-gold-bright: #e0bc4a;
+
+  /* -- color: text -- */
+  --color-text: #e4e1d8;
+  --color-text-dim: #8a8f98;
+  --color-text-faint: #565c68;
+
+  /* -- type -- */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* -- layout -- */
+  --content-width: 780px;
+  --wide-width: 1100px;
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-bg);
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--color-text);
+  margin: 0 0 var(--space-2);
+}
+
+h1 { font-size: clamp(2rem, 4vw, 3rem); }
+h2 { font-size: clamp(1.4rem, 2.5vw, 1.9rem); }
+h3 { font-size: 1.25rem; }
+
+p { margin: 0 0 var(--space-2); }
+
+a {
+  color: var(--color-blue-bright);
+  text-decoration: none;
+}
+a:hover { color: var(--color-gold-bright); }
+
+/* keyboard focus visibility -- kept even though nav uses custom states */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* utility: the small monospace "index" label used throughout
+   as a structural/annotation device (nav, section eyebrows) */
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+.wrap {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 var(--space-3);
+}
+
+.wrap-wide {
+  max-width: var(--wide-width);
+  margin: 0 auto;
+  padding: 0 var(--space-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
