@@ -37,6 +37,9 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
       </ul>
     </nav>
   </div>
+  <div>
+    <p>Slider for color themes here</p>
+  </div>
   <div class="rule" aria-hidden="true"></div>
 </header>
 
@@ -106,7 +109,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 
   .rule {
     height: 1px;
-    background: linear-gradient(90deg, var(--color-gold) 0%, var(--color-line) 18%, var(--color-line) 82%, var(--color-blue) 100%);
+    background: linear-gradient(90deg, var(--color-gold) 0%, var(--color-line) 50%, var(--color-blue) 100%);
     opacity: 0.6;
   }
 
