@@ -31,7 +31,10 @@ function takeOption(name) {
 
 function git(argsForGit, { allowFailure = false } = {}) {
   try {
-    return execFileSync('git', argsForGit, { encoding: 'utf8' });
+    return execFileSync('git', argsForGit, {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', allowFailure ? 'ignore' : 'pipe'],
+    });
   } catch (err) {
     if (allowFailure) return '';
     throw err;
@@ -202,9 +205,21 @@ function createTransporter() {
     throw new Error(`Missing required mail env var(s): ${missing.join(', ')}`);
   }
 
+  const host = process.env.SMTP_HOST.trim();
+  if (!/^[a-z0-9.-]+$/i.test(host)) {
+    throw new Error(
+      'SMTP_HOST should be only a hostname like "smtp.gmail.com". Do not include "SMTP_HOST=", quotes, spaces, slashes, or backslashes in the GitHub secret value.'
+    );
+  }
+
+  const port = Number(process.env.SMTP_PORT ?? 587);
+  if (!Number.isInteger(port) || port <= 0) {
+    throw new Error('SMTP_PORT should be a number like 587 or 465.');
+  }
+
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 587),
+    host,
+    port,
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
       user: process.env.SMTP_USER,
