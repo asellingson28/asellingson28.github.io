@@ -65,7 +65,7 @@ const devJson = import.meta.env.DEV
         </div>
         {post.data.cover && (
           <figure class="post-cover">
-            <Image src={post.data.cover} alt={post.data.coverCaption ?? `Cover art for ${post.data.title}`} width={360} />
+            <Image src={post.data.cover} alt={post.data.coverCaption ?? `Cover art for ${post.data.title}`} width={560} />
             {post.data.coverCaption && <figcaption class="mono-label">{post.data.coverCaption}</figcaption>}
           </figure>
         )}
@@ -189,19 +189,19 @@ const devJson = import.meta.env.DEV
     justify-content: space-between;
     align-items: flex-start;
     gap: var(--space-3);
-    padding: var(--space-3) 0;
+    padding: 2rem 0;
     border-bottom: 1px solid var(--color-line);
   }
   .post-main { flex: 1; min-width: 0; }
 
   .post-cover {
     flex-shrink: 0;
-    width: 180px;
+    width: 240px;
     margin: 0;
   }
   .post-cover img {
     width: 100%;
-    height: 120px;
+    height: 160px;
     object-fit: cover;
     display: block;
     border: 1px solid var(--color-line);
@@ -215,7 +215,7 @@ const devJson = import.meta.env.DEV
   @media (max-width: 640px) {
     .post-list > li { flex-direction: column; }
     .post-cover { width: 100%; }
-    .post-cover img { height: 140px; }
+    .post-cover img { height: 180px; }
   }
   .post-list a {
     font-family: var(--font-display);
