@@ -1,0 +1,558 @@
+{
+  "fetchedAt": "2026-07-11T16:25:05.139Z",
+  "userId": "192886223",
+  "currentlyReading": [
+    {
+      "title": "A Happy Death",
+      "author": "Albert Camus",
+      "link": "https://www.goodreads.com/book/show/15682",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1348556147l/15682.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-07-10",
+      "review": null
+    },
+    {
+      "title": "The Secret History",
+      "author": "Donna Tartt",
+      "link": "https://www.goodreads.com/book/show/29044",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1751820530l/29044._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-05-19",
+      "review": null
+    }
+  ],
+  "read": [
+    {
+      "title": "Hiking with Nietzsche: On Becoming Who You Are",
+      "author": "John Kaag",
+      "link": "https://www.goodreads.com/book/show/37941732",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1527493771l/37941732._SY475_.jpg",
+      "rating": 2,
+      "readAt": "2026-07-10",
+      "addedAt": "2026-07-10",
+      "review": "Not a favorite due to the way its written: unclear when switching between Kaag's life and Nietzsche. Confusing in timeline imo. Might just be because I read it over a long period, though. Good intro to Nietzschean philosophy."
+    },
+    {
+      "title": "The Art Thief: A True Story of Love, Crime, and a Dangerous Obsession",
+      "author": "Michael Finkel",
+      "link": "https://www.goodreads.com/book/show/62873378",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1701688707l/62873378._SX318_.jpg",
+      "rating": 5,
+      "readAt": "2026-06-28",
+      "addedAt": "2026-06-28",
+      "review": "From the first page to the last, Finkle makes you fall in love with the main character, regardless of his inherent flaws. You are drawn in to love and feel emotionally connected to a kleptomaniac, one whose patterns are never fixed. A truly introspective, engaging, and beautiful book; a favorite of all time. I never wanted to put it down. My only wish is that I had committed to finishing it faster."
+    },
+    {
+      "title": "Cod: A Biography of the Fish that Changed the World",
+      "author": "Mark Kurlansky",
+      "link": "https://www.goodreads.com/book/show/64895",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1356452461l/64895.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-05-17",
+      "review": null
+    },
+    {
+      "title": "V for Vendetta",
+      "author": "Alan Moore",
+      "link": "https://www.goodreads.com/book/show/5805",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1343668985l/5805.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-03-30",
+      "review": "did not realize this was a comic book so I skimmed through it, movie showed the dystopian core much better"
+    },
+    {
+      "title": "Notes from Underground",
+      "author": "Fyodor Dostoevsky",
+      "link": "https://www.goodreads.com/book/show/49455",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1657562670l/49455._SY475_.jpg",
+      "rating": 4,
+      "readAt": "2026-03-17",
+      "addedAt": "2026-03-18",
+      "review": "The real meaning is really deep, and you really need to analyze and relate to understand, but overall, another amazing Dostoyevsky work."
+    },
+    {
+      "title": "Train Dreams",
+      "author": "Denis Johnson",
+      "link": "https://www.goodreads.com/book/show/12991188",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1747752588l/12991188._SY475_.jpg",
+      "rating": 4,
+      "readAt": "2026-02-16",
+      "addedAt": "2026-02-16",
+      "review": null
+    },
+    {
+      "title": "Wuthering Heights",
+      "author": "Emily Brontë",
+      "link": "https://www.goodreads.com/book/show/32929156",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1478641029l/32929156._SY475_.jpg",
+      "rating": 4,
+      "readAt": "2026-02-12",
+      "addedAt": "2026-02-13",
+      "review": null
+    },
+    {
+      "title": "Into the Sun",
+      "author": "C. F. Ramuz",
+      "link": "https://www.goodreads.com/book/show/219299653",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1734700472l/219299653._SY475_.jpg",
+      "rating": 3,
+      "readAt": "2026-01-31",
+      "addedAt": "2026-02-01",
+      "review": null
+    },
+    {
+      "title": "The Prestige",
+      "author": "Christopher Priest",
+      "link": "https://www.goodreads.com/book/show/239239",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1414195709l/239239.jpg",
+      "rating": 5,
+      "readAt": "2025-11-28",
+      "addedAt": "2025-11-28",
+      "review": null
+    },
+    {
+      "title": "No Longer Human",
+      "author": "Osamu Dazai",
+      "link": "https://www.goodreads.com/book/show/194746",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1422638843l/194746.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-10-27",
+      "review": null
+    },
+    {
+      "title": "How to Take Smart Notes",
+      "author": "Sönke Ahrens",
+      "link": "https://www.goodreads.com/book/show/34507927",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1488937626l/34507927._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-10-20",
+      "review": null
+    },
+    {
+      "title": "White Nights",
+      "author": "Fyodor Dostoevsky",
+      "link": "https://www.goodreads.com/book/show/1772910",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1450699039l/1772910.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-09-09",
+      "review": null
+    },
+    {
+      "title": "Metamorphosis and The Trial",
+      "author": "Franz Kafka",
+      "link": "https://www.goodreads.com/book/show/223700467",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1747153108l/223700467._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-09-05",
+      "review": null
+    },
+    {
+      "title": "Focus (HBR Emotional Intelligence Series)",
+      "author": "Daniel Goleman",
+      "link": "https://www.goodreads.com/book/show/39996150",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1525051245l/39996150._SX318_.jpg",
+      "rating": 3,
+      "readAt": null,
+      "addedAt": "2025-09-05",
+      "review": null
+    },
+    {
+      "title": "American Psycho",
+      "author": "Bret Easton Ellis",
+      "link": "https://www.goodreads.com/book/show/28676",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1436934349l/28676._SY475_.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-09-05",
+      "review": null
+    },
+    {
+      "title": "Animal Farm / 1984",
+      "author": "George Orwell",
+      "link": "https://www.goodreads.com/book/show/5472",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1327959366l/5472.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-09-05",
+      "review": null
+    },
+    {
+      "title": "The Trial",
+      "author": "Franz Kafka",
+      "link": "https://www.goodreads.com/book/show/17690",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1320399438l/17690.jpg",
+      "rating": 4,
+      "readAt": "2025-09-02",
+      "addedAt": "2025-09-03",
+      "review": null
+    },
+    {
+      "title": "Becoming a Data Head: How to Think, Speak, and Understand Data Science, Statistics, and Machine Learning",
+      "author": "Alex J. Gutman",
+      "link": "https://www.goodreads.com/book/show/56357967",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1654298190l/56357967._SY475_.jpg",
+      "rating": 5,
+      "readAt": "2025-08-27",
+      "addedAt": "2025-08-27",
+      "review": null
+    },
+    {
+      "title": "The Lion, the Witch and the Wardrobe (Chronicles of Narnia, #1)",
+      "author": "C.S. Lewis",
+      "link": "https://www.goodreads.com/book/show/100915",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1353029077l/100915.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-17",
+      "review": null
+    },
+    {
+      "title": "Sense and Sensibility",
+      "author": "Jane Austen",
+      "link": "https://www.goodreads.com/book/show/14935",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1397245675l/14935._SY475_.jpg",
+      "rating": 2,
+      "readAt": null,
+      "addedAt": "2025-08-16",
+      "review": null
+    },
+    {
+      "title": "Utopia",
+      "author": "Thomas More",
+      "link": "https://www.goodreads.com/book/show/18414",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1388190168l/18414.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-16",
+      "review": null
+    },
+    {
+      "title": "Paradise Lost",
+      "author": "John Milton",
+      "link": "https://www.goodreads.com/book/show/15997",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1526070678l/15997._SY475_.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-08-16",
+      "review": null
+    },
+    {
+      "title": "The Canterbury Tales",
+      "author": "Geoffrey Chaucer",
+      "link": "https://www.goodreads.com/book/show/2696",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1261208589l/2696.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-16",
+      "review": null
+    },
+    {
+      "title": "The Prince",
+      "author": "Niccolò Machiavelli",
+      "link": "https://www.goodreads.com/book/show/28862",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1390055828l/28862.jpg",
+      "rating": 3,
+      "readAt": null,
+      "addedAt": "2025-08-16",
+      "review": null
+    },
+    {
+      "title": "Calculus Made Easy",
+      "author": "Silvanus Phillips Thompson",
+      "link": "https://www.goodreads.com/book/show/818063",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1312067998l/818063.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-15",
+      "review": null
+    },
+    {
+      "title": "Calculus: Early Transcendentals 8th Edition",
+      "author": "James Stewart",
+      "link": "https://www.goodreads.com/book/show/53812643",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1591241849l/53812643._SX318_.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-15",
+      "review": null
+    },
+    {
+      "title": "How to Prevent the Next Pandemic",
+      "author": "Bill  Gates",
+      "link": "https://www.goodreads.com/book/show/59900689",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1644297792l/59900689.jpg",
+      "rating": 3,
+      "readAt": null,
+      "addedAt": "2025-08-15",
+      "review": null
+    },
+    {
+      "title": "The Adventures of Huckleberry Finn (Adventures of Tom and Huck, #2)",
+      "author": "Mark Twain",
+      "link": "https://www.goodreads.com/book/show/2956",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1546096879l/2956.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-15",
+      "review": null
+    },
+    {
+      "title": "Charlotte’s Web",
+      "author": "E.B. White",
+      "link": "https://www.goodreads.com/book/show/24178",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1628267712l/24178._SY475_.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-08-15",
+      "review": null
+    },
+    {
+      "title": "The Giving Tree",
+      "author": "Shel Silverstein",
+      "link": "https://www.goodreads.com/book/show/370493",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1769901237l/370493._SX318_.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-15",
+      "review": null
+    },
+    {
+      "title": "The Chronicles of Narnia (The Chronicles of Narnia, #1-7)",
+      "author": "C.S. Lewis",
+      "link": "https://www.goodreads.com/book/show/11127",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1661032875l/11127._SY475_.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-15",
+      "review": null
+    },
+    {
+      "title": "Beowulf",
+      "author": "Unknown",
+      "link": "https://www.goodreads.com/book/show/52357",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1327878125l/52357.jpg",
+      "rating": 3,
+      "readAt": null,
+      "addedAt": "2025-08-14",
+      "review": null
+    },
+    {
+      "title": "The Four Agreements: A Practical Guide to Personal Freedom",
+      "author": "Miguel Ruiz",
+      "link": "https://www.goodreads.com/book/show/6596",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1630664059l/6596.jpg",
+      "rating": 3,
+      "readAt": "2025-08-11",
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Tender Is the Night",
+      "author": "F. Scott Fitzgerald",
+      "link": "https://www.goodreads.com/book/show/46164",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1559763775l/46164._SY475_.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Essentialism: The Disciplined Pursuit of Less",
+      "author": "Greg McKeown",
+      "link": "https://www.goodreads.com/book/show/18077875",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1403165375l/18077875.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Building a Second Brain: A Proven Method to Organize Your Digital Life and Unlock Your Creative Potential",
+      "author": "Tiago Forte",
+      "link": "https://www.goodreads.com/book/show/59616977",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1652891488l/59616977.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Effortless: Make It Easier to Do What Matters Most",
+      "author": "Greg McKeown",
+      "link": "https://www.goodreads.com/book/show/54895700",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1611550995l/54895700.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Atomic Habits: An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+      "author": "James Clear",
+      "link": "https://www.goodreads.com/book/show/40121378",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1655988385l/40121378.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Digital Minimalism: Choosing a Focused Life in a Noisy World",
+      "author": "Cal Newport",
+      "link": "https://www.goodreads.com/book/show/40672036",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1549433350l/40672036._SY475_.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Don Quixote",
+      "author": "Miguel de Cervantes Saavedra",
+      "link": "https://www.goodreads.com/book/show/3836",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1546112331l/3836._SY475_.jpg",
+      "rating": 2,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Brave New World",
+      "author": "Aldous Huxley",
+      "link": "https://www.goodreads.com/book/show/5129",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1575509280l/5129._SY475_.jpg",
+      "rating": 2,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "The Odyssey",
+      "author": "Homer",
+      "link": "https://www.goodreads.com/book/show/1381",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1711957706l/1381._SY475_.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "The Myth of Sisyphus",
+      "author": "Albert Camus",
+      "link": "https://www.goodreads.com/book/show/91950",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1347654509l/91950._SY475_.jpg",
+      "rating": 3,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Dante: The Divine Comedy (Landmarks of World Literature)",
+      "author": "Robin Kirkpatrick",
+      "link": "https://www.goodreads.com/book/show/1529095",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1349109596l/1529095.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "The Iliad",
+      "author": "Homer",
+      "link": "https://www.goodreads.com/book/show/77265004",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1681797700l/77265004.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Crime and Punishment",
+      "author": "Fyodor Dostoevsky",
+      "link": "https://www.goodreads.com/book/show/7144",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1382846449l/7144.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Fahrenheit 451",
+      "author": "Ray Bradbury",
+      "link": "https://www.goodreads.com/book/show/13079982",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1383718290l/13079982.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "The Stranger",
+      "author": "Albert Camus",
+      "link": "https://www.goodreads.com/book/show/49552",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1738704267l/49552._SY475_.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "The Picture of Dorian Gray",
+      "author": "Oscar Wilde",
+      "link": "https://www.goodreads.com/book/show/489732",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1454087681l/489732._SY475_.jpg",
+      "rating": 5,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Animal Farm",
+      "author": "George Orwell",
+      "link": "https://www.goodreads.com/book/show/170448",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1325861570l/170448.jpg",
+      "rating": 4,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "The Metamorphisis",
+      "author": "Franz Kafka",
+      "link": "https://www.goodreads.com/book/show/35052542",
+      "cover": "https://s.gr-assets.com/assets/nophoto/book/111x148-675b3b2743c83e96e2540d2929d5f4d2.png",
+      "rating": 4,
+      "readAt": "2025-06-30",
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "1984",
+      "author": "George Orwell",
+      "link": "https://www.goodreads.com/book/show/61439040",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1657781256l/61439040._SX318_.jpg",
+      "rating": 5,
+      "readAt": "2025-03-01",
+      "addedAt": "2025-09-01",
+      "review": null
+    },
+    {
+      "title": "The Great Gatsby",
+      "author": "F. Scott Fitzgerald",
+      "link": "https://www.goodreads.com/book/show/41733839",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1650033243l/41733839._SY475_.jpg",
+      "rating": 5,
+      "readAt": "2024-02-01",
+      "addedAt": "2025-09-01",
+      "review": null
+    }
+  ]
+}

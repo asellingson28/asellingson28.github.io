@@ -1,54 +1,221 @@
 ---
 import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 // getCollection reads every .md file matched by the loader in content.config.ts
+// (in dev, drafts are included so they can be edited; builds still skip them)
 const allPosts = await getCollection('blog', ({ data }) => {
-  return data.draft !== true; // skip anything marked draft: true
+  return import.meta.env.DEV || data.draft !== true;
 });
 
 const posts = allPosts.sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 );
+
+// raw post data for the dev editor's pre-filled form; never built
+const devJson = import.meta.env.DEV
+  ? JSON.stringify(
+      posts.map((p) => ({
+        id: p.id,
+        title: p.data.title,
+        date: p.data.date.toISOString().slice(0, 10),
+        description: p.data.description ?? '',
+        tags: (p.data.tags ?? []).join(', '),
+        draft: p.data.draft ?? false,
+        coverCaption: p.data.coverCaption ?? '',
+        hasCover: Boolean(p.data.cover),
+        body: p.body ?? '',
+      }))
+    ).replace(/</g, '\\u003c')
+  : '';
 ---
 <BaseLayout title="Writing">
   <span class="mono-label">index / 02</span>
-  <h1>Writing</h1>
+  <div class="title-row">
+    <h1>Writing</h1>
+    {import.meta.env.DEV && (
+      <button id="new-post" class="dev-btn mono-label" type="button" title="Dev only: writes src/content/blog/<slug>.md">+ new post</button>
+    )}
+  </div>
 
   <ul class="post-list">
     {posts.map((post) => (
       <li>
-        <a href={`/blog/${post.id}`}>{post.data.title}</a>
-        <span class="mono-label post-date">
-          {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-        </span>
-        {post.data.description && <p class="post-desc">{post.data.description}</p>}
-        {post.data.tags && post.data.tags.length > 0 && (
-          <ul class="tag-list">
-            {post.data.tags.slice(0, 3).map((tag) => (
-              <li class="tag">{tag}</li>
-            ))}
-            {post.data.tags.length > 3 && (
-              <li class="tag tag-more">+{post.data.tags.length - 3}</li>
-            )}
-          </ul>
+        <div class="post-main">
+          <a href={`/blog/${post.id}`}>{post.data.title}</a>
+          {import.meta.env.DEV && post.data.draft && <span class="draft-badge mono-label">draft</span>}
+          {import.meta.env.DEV && (
+            <button class="post-edit dev-btn mono-label" data-id={post.id} type="button">edit</button>
+          )}
+          <span class="mono-label post-date">
+            {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+          </span>
+          {post.data.description && <p class="post-desc">{post.data.description}</p>}
+          {post.data.tags && post.data.tags.length > 0 && (
+            <ul class="tag-list">
+              {post.data.tags.slice(0, 3).map((tag) => (
+                <li class="tag">{tag}</li>
+              ))}
+              {post.data.tags.length > 3 && (
+                <li class="tag tag-more">+{post.data.tags.length - 3}</li>
+              )}
+            </ul>
+          )}
+        </div>
+        {post.data.cover && (
+          <figure class="post-cover">
+            <Image src={post.data.cover} alt={post.data.coverCaption ?? `Cover art for ${post.data.title}`} width={360} />
+            {post.data.coverCaption && <figcaption class="mono-label">{post.data.coverCaption}</figcaption>}
+          </figure>
         )}
       </li>
     ))}
   </ul>
 
   {posts.length === 0 && <p style="color: var(--color-text-dim);">No posts yet.</p>}
+
+  {import.meta.env.DEV && <script type="application/json" id="blog-dev-data" set:html={devJson} />}
 </BaseLayout>
 
+<script>
+  // dev-only blog editor — import.meta.env.DEV is statically false in builds,
+  // so none of this ships
+  if (import.meta.env.DEV) {
+    interface PostData {
+      id: string;
+      title: string;
+      date: string;
+      description: string;
+      tags: string;
+      draft: boolean;
+      coverCaption: string;
+      hasCover: boolean;
+      body: string;
+    }
+
+    const posts: PostData[] = JSON.parse(
+      document.getElementById('blog-dev-data')?.textContent ?? '[]'
+    );
+    const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+    const dialog = document.createElement('dialog');
+    dialog.className = 'post-editor';
+    document.body.append(dialog);
+
+    const open = (p?: PostData) => {
+      dialog.innerHTML = `
+        <form id="post-form">
+          <span class="mono-label">${p ? `edit · src/content/blog/${esc(p.id)}.md` : 'new post'}</span>
+          <input name="title" placeholder="Title" required value="${esc(p?.title ?? '')}" />
+          <div class="row">
+            <input name="date" type="date" required value="${esc(p?.date ?? new Date().toISOString().slice(0, 10))}" />
+            <label class="mono-label draft-toggle"><input type="checkbox" name="draft" ${p?.draft ? 'checked' : ''} /> draft</label>
+          </div>
+          <input name="description" placeholder="Description" value="${esc(p?.description ?? '')}" />
+          <input name="tags" placeholder="Tags (comma-separated)" value="${esc(p?.tags ?? '')}" />
+          <label class="mono-label cover-label">cover art ${p?.hasCover ? '(leave empty to keep current)' : ''}
+            <input type="file" name="cover" accept="image/*" />
+          </label>
+          <input name="coverCaption" placeholder="Cover caption / credit" value="${esc(p?.coverCaption ?? '')}" />
+          <textarea name="body" rows="16" placeholder="Body (markdown)">${esc(p?.body ?? '')}</textarea>
+          <div class="row">
+            <button type="submit">save post</button>
+            <button type="button" id="post-cancel">cancel</button>
+          </div>
+        </form>`;
+      dialog.showModal();
+
+      document.getElementById('post-cancel')?.addEventListener('click', () => dialog.close());
+      document.getElementById('post-form')?.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const fd = new FormData(ev.currentTarget as HTMLFormElement);
+        const cover = fd.get('cover') as File | null;
+        const res = await fetch('/__edit-blog/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            slug: p?.id,
+            title: fd.get('title'),
+            date: fd.get('date'),
+            description: fd.get('description'),
+            tags: fd.get('tags'),
+            draft: fd.get('draft') === 'on',
+            coverCaption: fd.get('coverCaption'),
+            body: fd.get('body'),
+          }),
+        });
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({ error: res.statusText }));
+          alert(`Could not save post: ${error}`);
+          return;
+        }
+        const { slug } = await res.json();
+        if (cover && cover.size > 0) {
+          const up = await fetch(
+            `/__edit-blog/image?slug=${encodeURIComponent(slug)}&name=${encodeURIComponent(cover.name)}`,
+            { method: 'POST', body: cover }
+          );
+          if (!up.ok) {
+            const { error } = await up.json().catch(() => ({ error: up.statusText }));
+            alert(`Post saved, but the cover failed: ${error}`);
+          }
+        }
+        location.reload();
+      });
+    };
+
+    document.getElementById('new-post')?.addEventListener('click', () => open());
+    document.querySelectorAll<HTMLButtonElement>('.post-edit').forEach((btn) =>
+      btn.addEventListener('click', () => open(posts.find((p) => p.id === btn.dataset.id)))
+    );
+  }
+</script>
+
 <style>
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+
   .post-list {
     list-style: none;
     padding: 0;
     margin-top: var(--space-4);
   }
   .post-list > li {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
     padding: var(--space-3) 0;
     border-bottom: 1px solid var(--color-line);
+  }
+  .post-main { flex: 1; min-width: 0; }
+
+  .post-cover {
+    flex-shrink: 0;
+    width: 180px;
+    margin: 0;
+  }
+  .post-cover img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+    border: 1px solid var(--color-line);
+  }
+  .post-cover figcaption {
+    margin-top: 0.35rem;
+    text-transform: none;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 640px) {
+    .post-list > li { flex-direction: column; }
+    .post-cover { width: 100%; }
+    .post-cover img { height: 140px; }
   }
   .post-list a {
     font-family: var(--font-display);
@@ -82,5 +249,76 @@ const posts = allPosts.sort(
     color: var(--color-gold);
     border-color: var(--color-gold);
     opacity: 0.5;
+  }
+
+  .draft-badge {
+    color: var(--color-gold-bright);
+    border: 1px dashed var(--color-gold);
+    padding: 0.1rem 0.4rem;
+    margin-left: 0.5rem;
+  }
+</style>
+
+<style is:global>
+  /* dev-only editor (dialog is created by script, so styles must be global) */
+  .dev-btn {
+    background: none;
+    border: 1px dashed var(--color-line-bright);
+    color: var(--color-text-dim);
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+  }
+  .dev-btn:hover { color: var(--color-gold-bright); border-color: var(--color-gold); }
+  .post-edit { margin-left: 0.6rem; padding: 0.1rem 0.45rem; }
+
+  .post-editor {
+    width: min(680px, 92vw);
+    background: var(--color-bg-elevated);
+    color: var(--color-text);
+    border: 1px solid var(--color-line-bright);
+    border-radius: 4px;
+    padding: var(--space-3);
+  }
+  .post-editor::backdrop { background: rgba(10, 13, 18, 0.75); }
+  .post-editor form { display: grid; gap: 0.6rem; }
+  .post-editor .row { display: flex; gap: 0.6rem; align-items: center; }
+  .post-editor input,
+  .post-editor textarea {
+    width: 100%;
+    background: var(--color-bg-inset);
+    border: 1px solid var(--color-line-bright);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.55rem;
+  }
+  .post-editor textarea { font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.5; }
+  .post-editor input[type='date'] { width: auto; }
+  .post-editor input[type='checkbox'] { width: auto; accent-color: var(--color-gold); }
+  .post-editor .draft-toggle { display: flex; gap: 0.4rem; align-items: center; cursor: pointer; }
+  .post-editor .cover-label { display: grid; gap: 0.25rem; }
+  .post-editor input[type='file'] { border-style: dashed; }
+  .post-editor button[type='submit'] {
+    background: var(--color-gold);
+    border: none;
+    color: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.45rem 0.7rem;
+    cursor: pointer;
+  }
+  .post-editor button[type='submit']:hover { background: var(--color-gold-bright); }
+  .post-editor #post-cancel {
+    background: none;
+    border: 1px solid var(--color-line-bright);
+    color: var(--color-text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.45rem 0.7rem;
+    cursor: pointer;
   }
 </style>

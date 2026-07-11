@@ -1,8 +1,188 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import goodreads from '../data/goodreads.json';
+
+// snapshot written by `npm run fetch:media`; fetchedAt only changes when the shelf does
+const { currentlyReading, read } = goodreads;
+const profileUrl = `https://www.goodreads.com/user/show/${goodreads.userId}`;
+const updated = goodreads.fetchedAt.slice(0, 16).replace('T', ' · ') + ' utc';
+
+const fmtDate = (iso: string | null) =>
+  iso
+    ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'UTC',
+      })
+    : null;
 ---
-<BaseLayout title="Reading">
+<BaseLayout title="Reading" description="Books I've read, pulled from my Goodreads shelves.">
   <span class="mono-label">index / 03</span>
   <h1>Reading</h1>
-  <p style="color: var(--color-text-dim);">I wanna talk about some of my favorite books here!.</p>
+  <p class="lede">
+    Pulled from my <a href={profileUrl} target="_blank" rel="noopener noreferrer">Goodreads shelves</a>.
+  </p>
+
+  {currentlyReading.length > 0 && (
+    <section>
+      <h2 class="mono-label section-label">currently reading / {String(currentlyReading.length).padStart(2, '0')}</h2>
+      <ul class="current-list">
+        {currentlyReading.map((book) => (
+          <li class="current-item">
+            {book.cover && (
+              <a href={book.link} target="_blank" rel="noopener noreferrer">
+                <img class="current-cover" src={book.cover} alt={`Cover of ${book.title}`} loading="lazy" referrerpolicy="no-referrer" />
+              </a>
+            )}
+            <div>
+              <a class="book-title" href={book.link} target="_blank" rel="noopener noreferrer">{book.title}</a>
+              <span class="book-author">{book.author}</span>
+              {book.addedAt && <span class="mono-label">started / {fmtDate(book.addedAt)}</span>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section>
+    <h2 class="mono-label section-label">read / {String(read.length).padStart(2, '0')}</h2>
+    <ul class="book-grid">
+      {read.map((book) => (
+        <li class="book">
+          <a href={book.link} target="_blank" rel="noopener noreferrer">
+            {book.cover && <img class="book-cover" src={book.cover} alt={`Cover of ${book.title}`} loading="lazy" referrerpolicy="no-referrer" />}
+          </a>
+          <a class="book-title" href={book.link} target="_blank" rel="noopener noreferrer">{book.title}</a>
+          <span class="book-author">{book.author}</span>
+          <span class="mono-label book-row">
+            {book.rating > 0 && (
+              <span class="stars" aria-label={`Rated ${book.rating} of 5`}>
+                {'★'.repeat(book.rating)}<span class="stars-empty">{'★'.repeat(5 - book.rating)}</span>
+              </span>
+            )}
+            {book.readAt && <span>{fmtDate(book.readAt)}</span>}
+          </span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <footer class="data-footer">
+    <span class="mono-label">source / goodreads shelf rss</span>
+    <span class="mono-label">most recent update / {updated}</span>
+  </footer>
 </BaseLayout>
+
+<style>
+  .lede { color: var(--color-text-dim); }
+  .lede a { color: var(--color-blue-bright); }
+  .lede a:hover { color: var(--color-gold-bright); }
+
+  section { margin-top: var(--space-4); }
+
+  .section-label {
+    color: var(--color-gold);
+    border-bottom: 1px solid var(--color-line);
+    padding-bottom: var(--space-1);
+    margin: 0 0 var(--space-3);
+    font-size: 0.7rem;
+    font-weight: 400;
+  }
+
+  .current-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-3);
+  }
+  .current-item {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
+    border: 1px solid var(--color-line);
+    background: var(--color-bg-elevated);
+    padding: var(--space-2);
+  }
+  .current-cover {
+    width: 72px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    display: block;
+    border: 1px solid var(--color-line-bright);
+    flex-shrink: 0;
+  }
+  .current-item > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .book-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: var(--space-3) var(--space-2);
+  }
+  .book {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+  .book-cover {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    display: block;
+    border: 1px solid var(--color-line);
+  }
+  .book a:hover .book-cover,
+  .current-item a:hover .current-cover { border-color: var(--color-gold); }
+
+  .book-title {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    line-height: 1.3;
+    color: var(--color-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .book-title:hover { color: var(--color-gold-bright); }
+  .book .book-title { margin-top: 0.2rem; }
+
+  .book-author {
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+  }
+
+  .book-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .stars {
+    color: var(--color-gold);
+    letter-spacing: 0.1em;
+  }
+  .stars-empty { color: var(--color-line-bright); }
+
+  .data-footer {
+    margin-top: var(--space-5);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-line);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+</style>

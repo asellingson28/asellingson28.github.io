@@ -6,8 +6,9 @@ const navItems = [
   { n: '02', label: 'Projects', href: '/projects' },
   { n: '03', label: 'Writing', href: '/blog' },
   { n: '04', label: 'Reading', href: '/books' },
-  { n: '05', label: 'Travels', href: '/travels' },
-  { n: '06', label: 'About', href: '/about' },
+  { n: '05', label: 'Watching', href: '/films' },
+  { n: '06', label: 'Places', href: '/travels' },
+  { n: '07', label: 'About', href: '/about' },
 ];
 
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
@@ -37,8 +38,16 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
       </ul>
     </nav>
   </div>
-  <div>
-    <p>Slider for color themes here</p>
+  <div class="wrap-wide theme-row">
+    <div class="theme-switch">
+      <span class="mono-label switch-name" id="theme-switch-name">theme</span>
+      <input type="range" id="theme-slider" min="0" max="2" step="1" value="0" aria-labelledby="theme-switch-name" />
+      <button type="button" class="mono-label opt" data-theme-index="0">royal</button>
+      <span class="mono-label sep" aria-hidden="true">/</span>
+      <button type="button" class="mono-label opt" data-theme-index="1">sunset</button>
+      <span class="mono-label sep" aria-hidden="true">/</span>
+      <button type="button" class="mono-label opt" data-theme-index="2">cherry</button>
+    </div>
   </div>
   <div class="rule" aria-hidden="true"></div>
 </header>
@@ -48,7 +57,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(10, 13, 18, 0.92);
+    background: color-mix(in srgb, var(--color-bg) 92%, transparent);
     backdrop-filter: blur(6px);
   }
 
@@ -113,9 +122,105 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
     opacity: 0.6;
   }
 
+  .theme-row {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: var(--space-1);
+  }
+
+  .theme-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    user-select: none;
+  }
+  .switch-name { padding-right: 0.3rem; border-right: 1px solid var(--color-line); }
+
+  /* 3-position slider styled as a drafting-instrument track */
+  .theme-switch input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 52px;
+    height: 16px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .theme-switch input::-webkit-slider-runnable-track {
+    height: 14px;
+    border: 1px solid var(--color-line-bright);
+    background: var(--color-bg-inset);
+  }
+  .theme-switch input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 8px;
+    margin-top: 2px;
+    border: none;
+    border-radius: 0;
+    background: var(--color-gold);
+  }
+  .theme-switch input::-moz-range-track {
+    height: 14px;
+    box-sizing: border-box;
+    border: 1px solid var(--color-line-bright);
+    background: var(--color-bg-inset);
+  }
+  .theme-switch input::-moz-range-thumb {
+    width: 10px;
+    height: 8px;
+    border: none;
+    border-radius: 0;
+    background: var(--color-gold);
+  }
+  .theme-switch input:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+
+  .theme-switch .opt {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--color-text-faint);
+  }
+  .theme-switch .opt:hover { color: var(--color-text-dim); }
+  .theme-switch .opt.active { color: var(--color-text); }
+  .sep { color: var(--color-line-bright); }
+
   @media (max-width: 640px) {
     nav ul { gap: var(--space-2); flex-wrap: wrap; }
     .nav-label { display: none; }
     .nav-n { font-size: 0.75rem; }
   }
 </style>
+
+<script>
+  const themes = ['royal', 'sunset', 'cherry'];
+  const root = document.documentElement;
+  const slider = document.getElementById('theme-slider') as HTMLInputElement;
+  const opts = [...document.querySelectorAll<HTMLButtonElement>('.theme-switch .opt')];
+
+  const sync = (index: number) => {
+    slider.value = String(index);
+    slider.setAttribute('aria-valuetext', themes[index]);
+    opts.forEach((opt) => opt.classList.toggle('active', Number(opt.dataset.themeIndex) === index));
+  };
+
+  const apply = (index: number) => {
+    if (index === 0) {
+      delete root.dataset.theme;
+    } else {
+      root.dataset.theme = themes[index];
+    }
+    sync(index);
+    try {
+      localStorage.setItem('theme', themes[index]);
+    } catch {}
+  };
+
+  sync(Math.max(0, themes.indexOf(root.dataset.theme ?? 'royal')));
+  slider.addEventListener('input', () => apply(Number(slider.value)));
+  opts.forEach((opt) => opt.addEventListener('click', () => apply(Number(opt.dataset.themeIndex))));
+</script>

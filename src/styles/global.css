@@ -28,6 +28,9 @@
   --color-text-dim: #8a8f98;
   --color-text-faint: #565c68;
 
+  /* -- color: ornament (vines) -- */
+  --color-vine: #5f8f72;
+
   /* -- type -- */
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Inter', -apple-system, sans-serif;
@@ -43,6 +46,68 @@
   --space-5: 4rem;
 }
 
+/* ===========================================================
+   THEME: sunset
+   Light pastel variant — peach ground, dusty-rose line work,
+   purple takes the blue role, coral takes the gold role.
+   Toggled via data-theme on <html> (slider in Nav).
+=========================================================== */
+[data-theme='sunset'] {
+  /* -- color: ground -- */
+  --color-bg: #f9ece4;
+  --color-bg-elevated: #fdf5ef;
+  --color-bg-inset: #f3ddd8;
+
+  /* -- color: line work -- */
+  --color-line: #e4c8cc;
+  --color-line-bright: #d89ba9;
+
+  /* -- color: accents -- */
+  --color-blue: #9e8cb8;
+  --color-blue-bright: #75619a;
+  --color-gold: #c98a74;
+  --color-gold-bright: #ab6248;
+
+  /* -- color: text -- */
+  --color-text: #4a3a55;
+  --color-text-dim: #85718e;
+  --color-text-faint: #a893ae;
+
+  /* -- color: ornament (vines) -- */
+  --color-vine: #7da377;
+}
+
+/* ===========================================================
+   THEME: cherry
+   Dark satin variant — deep wine ground, teal takes the blue
+   role (links), cherry red takes the gold role (accents).
+   Toggled via data-theme on <html> (slider in Nav).
+=========================================================== */
+[data-theme='cherry'] {
+  /* -- color: ground -- */
+  --color-bg: #140a10;
+  --color-bg-elevated: #1d0f17;
+  --color-bg-inset: #180c13;
+
+  /* -- color: line work -- */
+  --color-line: #3a1e2b;
+  --color-line-bright: #5c3244;
+
+  /* -- color: accents -- */
+  --color-blue: #1f8d9c;
+  --color-blue-bright: #46bccb;
+  --color-gold: #b02540;
+  --color-gold-bright: #d94f63;
+
+  /* -- color: text -- */
+  --color-text: #ece0dd;
+  --color-text-dim: #a18b91;
+  --color-text-faint: #6d5661;
+
+  /* -- color: ornament (vines) -- */
+  --color-vine: #3f8f5f;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -50,6 +115,9 @@
 html {
   background: var(--color-bg);
   color-scheme: dark;
+}
+html[data-theme='sunset'] {
+  color-scheme: light;
 }
 
 body {

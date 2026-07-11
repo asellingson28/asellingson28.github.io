@@ -1,8 +1,476 @@
 ---
+import { getCollection, render } from 'astro:content';
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { geocode } from '../lib/geocode';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+
+const entries = await getCollection('places');
+
+// Photos dropped in src/content/places/<place-id>/ attach to that place
+// automatically, ordered by filename — prefix 01-, 02-… to control order.
+const galleries = import.meta.glob<{ default: ImageMetadata }>(
+  '../content/places/*/*.{jpg,jpeg,JPG,JPEG,png,PNG,webp,gif,avif}',
+  { eager: true }
+);
+
+interface MapPlace {
+  id: string;
+  name: string;
+  kind: 'event' | 'travel' | 'lived';
+  coords: [number, number];
+  date?: string;
+  detail?: string;
+  images: string[];
+  /** raw markdown body — only included in dev, for the edit form */
+  notes?: string;
+}
+
+const mapPlaces: MapPlace[] = [];
+const noteRenders: { id: string; Content: any }[] = [];
+
+for (const entry of entries) {
+  const coords =
+    entry.data.coords ?? (entry.data.location ? await geocode(entry.data.location) : undefined);
+  if (!coords) {
+    console.warn(`[travels] skipping "${entry.data.name}" — no coordinates`);
+    continue;
+  }
+
+  const listed = entry.data.images;
+  const folderImgs = Object.keys(galleries)
+    .filter((p) => p.startsWith(`../content/places/${entry.id}/`))
+    .sort()
+    .map((p) => galleries[p].default)
+    .filter((img) => !listed.some((l) => l.src === img.src));
+
+  const images: string[] = [];
+  for (const img of [...listed, ...folderImgs]) {
+    const optimized = await getImage({ src: img, width: 560, format: 'webp' });
+    images.push(optimized.src);
+  }
+
+  if (entry.body?.trim()) {
+    const { Content } = await render(entry);
+    noteRenders.push({ id: entry.id, Content });
+  }
+
+  mapPlaces.push({
+    id: entry.id,
+    name: entry.data.name,
+    kind: entry.data.kind,
+    coords,
+    date: entry.data.date,
+    detail: entry.data.detail,
+    images,
+    notes: import.meta.env.DEV ? (entry.body ?? '').trim() : undefined,
+  });
+}
+
+const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
 ---
-<BaseLayout title="Travels">
-  <span class="mono-label">index / 04</span>
-  <h1>Travels</h1>
-  <p style="color: var(--color-text-dim);">I aim to add an interactive map here (idea from <a href="https://www.cmunroe.us/places">https://www.cmunroe.us/places</a>).</p>
+<BaseLayout title="Places" description="An interactive map of places — events, travels, and homes.">
+  <span class="mono-label">index / 05</span>
+  <h1>Places</h1>
+  <p style="color: var(--color-text-dim);">Places I've been — for concerts, travels, events, or just to be there. Includes some of my favorite <span style="font-style: italic;">3<sup>rd</sup></span> spaces. Click a marker for photos and notes.</p>
+
+  <div class="map-legend" role="group" aria-label="Filter map markers">
+    <label class="legend-item"><input type="checkbox" data-kind="event" checked /> <span class="dot dot-event" aria-hidden="true"></span> Events</label>
+    <label class="legend-item"><input type="checkbox" data-kind="travel" checked /> <span class="dot dot-travel" aria-hidden="true"></span> Travels</label>
+    <label class="legend-item"><input type="checkbox" data-kind="lived" checked /> <span class="dot dot-lived" aria-hidden="true"></span> Lived</label>
+    {import.meta.env.DEV && (
+      <button id="add-place" class="add-place-btn mono-label" type="button" title="Dev only: click the map to create a place file">+ add place</button>
+    )}
+  </div>
+
+  <div class="map-frame">
+    <div id="map"></div>
+  </div>
+
+  <script type="application/json" id="places-data" set:html={placesJson} />
+  {noteRenders.map(({ id, Content }) => (
+    <template data-notes={id}><Content /></template>
+  ))}
 </BaseLayout>
+
+<script>
+  import L from 'leaflet';
+  import 'leaflet.markercluster';
+
+  type PlaceKind = 'event' | 'travel' | 'lived';
+  interface MapPlace {
+    id: string;
+    name: string;
+    kind: PlaceKind;
+    coords: [number, number];
+    date?: string;
+    detail?: string;
+    images: string[];
+    notes?: string; // raw markdown, present in dev only
+  }
+
+  const places: MapPlace[] = JSON.parse(document.getElementById('places-data')!.textContent!);
+
+  const map = L.map('map', { worldCopyJump: true, scrollWheelZoom: false });
+
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  const markerIcon = (kind: PlaceKind) =>
+    L.divIcon({
+      className: 'place-marker',
+      html: `<span class="dot dot-${kind}"></span>`,
+      iconSize: [14, 14],
+      iconAnchor: [7, 7],
+      popupAnchor: [0, -10],
+    });
+
+  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+  interface PlaceMarkerOptions extends L.MarkerOptions {
+    kind: PlaceKind;
+  }
+
+  // one cluster group for all kinds so nearby dots merge across categories;
+  // the legend adds/removes each kind's markers from it
+  const clusters = L.markerClusterGroup({
+    maxClusterRadius: 48,
+    showCoverageOnHover: false,
+    iconCreateFunction: (cluster) => {
+      const count = cluster.getChildCount();
+      const kinds = new Set(
+        cluster.getAllChildMarkers().map((m) => (m.options as PlaceMarkerOptions).kind)
+      );
+      const kind = kinds.size === 1 ? [...kinds][0] : 'mixed';
+      // grow with the number of places inside, within reason
+      const size = Math.min(26 + (count - 2) * 3, 46);
+      return L.divIcon({
+        className: 'place-cluster',
+        html: `<span class="cluster-circle cluster-${kind}">${count}</span>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+    },
+  }).addTo(map);
+
+  const kindMarkers: Record<PlaceKind, L.Marker[]> = { event: [], travel: [], lived: [] };
+
+  for (const place of places) {
+    const meta = [place.kind, place.date].filter(Boolean).join(' · ');
+    const notes =
+      document.querySelector<HTMLTemplateElement>(`template[data-notes="${CSS.escape(place.id)}"]`)
+        ?.innerHTML ?? '';
+    const imgs = place.images
+      .map((src) => `<img src="${esc(src)}" alt="${esc(place.name)}" loading="lazy" />`)
+      .join('');
+
+    const html = `
+      <div class="place-popup" data-id="${esc(place.id)}">
+        <span class="popup-meta">${esc(meta)}</span>
+        <strong>${esc(place.name)}</strong>
+        ${place.detail ? `<em>${esc(place.detail)}</em>` : ''}
+        ${notes ? `<div class="popup-notes">${notes}</div>` : ''}
+        ${imgs ? `<div class="popup-imgs">${imgs}</div>` : ''}
+      </div>`;
+
+    const options: PlaceMarkerOptions = {
+      icon: markerIcon(place.kind),
+      title: place.name,
+      kind: place.kind,
+    };
+    kindMarkers[place.kind].push(
+      L.marker(place.coords, options).bindPopup(html, { maxWidth: 280, maxHeight: 420 })
+    );
+  }
+  clusters.addLayers(Object.values(kindMarkers).flat());
+
+  // fit the view to whatever markers exist
+  const bounds = L.latLngBounds(places.map((p) => p.coords));
+  if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+  else map.setView([30, 0], 2);
+
+  // legend checkboxes add/remove each category's markers from the cluster group
+  document.querySelectorAll<HTMLInputElement>('.map-legend input[data-kind]').forEach((box) => {
+    box.addEventListener('change', () => {
+      const markers = kindMarkers[box.dataset.kind as PlaceKind];
+      box.checked ? clusters.addLayers(markers) : clusters.removeLayers(markers);
+    });
+  });
+
+  // --- dev-only: create and edit src/content/places/<slug>.md from the map ---
+  // (import.meta.env.DEV is statically false in builds, so none of this ships)
+  if (import.meta.env.DEV) {
+    const KINDS: PlaceKind[] = ['travel', 'event', 'lived'];
+
+    const formHtml = (heading: string, v: Partial<MapPlace>) => `
+      <form id="place-form" class="place-popup add-place-form">
+        <span class="popup-meta">${esc(heading)}</span>
+        <input name="name" placeholder="Name" required value="${esc(v.name ?? '')}" />
+        <select name="kind">
+          ${KINDS.map((k) => `<option value="${k}"${v.kind === k ? ' selected' : ''}>${k}</option>`).join('')}
+        </select>
+        <input name="date" placeholder="Date (e.g. 2024)" value="${esc(v.date ?? '')}" />
+        <input name="detail" placeholder="Detail (artist, production…)" value="${esc(v.detail ?? '')}" />
+        <textarea name="notes" placeholder="Notes (markdown)" rows="3">${esc(v.notes ?? '')}</textarea>
+        <label class="add-file-label">photos <input type="file" name="photos" multiple accept="image/*" /></label>
+        <button type="submit">save place file</button>
+      </form>`;
+
+    // shared submit: POST the fields to `endpoint`, then upload any picked
+    // photos to src/content/places/<slug>/, where they auto-attach
+    const wireForm = (endpoint: string, extra: Record<string, unknown>) => {
+      document.getElementById('place-form')?.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const form = ev.currentTarget as HTMLFormElement;
+        const fd = new FormData(form);
+        const photos = (fd.getAll('photos') as File[]).filter((f) => f.size > 0);
+        fd.delete('photos');
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...Object.fromEntries(fd), ...extra }),
+        });
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({ error: res.statusText }));
+          alert(`Could not save place: ${error}`);
+          return;
+        }
+        const { file, slug } = await res.json();
+        for (const photo of photos) {
+          const up = await fetch(
+            `/__add-place/image?slug=${encodeURIComponent(slug)}&name=${encodeURIComponent(photo.name)}`,
+            { method: 'POST', body: photo }
+          );
+          if (!up.ok) {
+            const { error } = await up.json().catch(() => ({ error: up.statusText }));
+            alert(`Could not save photo ${photo.name}: ${error}`);
+          }
+        }
+        form.outerHTML = `<p class="popup-meta">saved ${esc(file)}${photos.length ? ` + ${photos.length} photo(s)` : ''} — reloading…</p>`;
+        setTimeout(() => location.reload(), 800);
+      });
+    };
+
+    // add: arm the button, then click the map
+    const btn = document.getElementById('add-place');
+    let arming = false;
+
+    btn?.addEventListener('click', () => {
+      arming = !arming;
+      btn.classList.toggle('armed', arming);
+      btn.textContent = arming ? 'click the map…' : '+ add place';
+      map.getContainer().style.cursor = arming ? 'crosshair' : '';
+    });
+
+    map.on('click', (e) => {
+      if (!arming) return;
+      const { lat, lng } = e.latlng;
+      L.popup({ maxWidth: 300, closeOnClick: false })
+        .setLatLng(e.latlng)
+        .setContent(formHtml(`new place · ${lat.toFixed(4)}, ${lng.toFixed(4)}`, {}))
+        .openOn(map);
+      wireForm('/__add-place', { coords: [lat, lng] });
+      arming = false;
+      btn?.classList.remove('armed');
+      if (btn) btn.textContent = '+ add place';
+      map.getContainer().style.cursor = '';
+    });
+
+    // edit: each marker popup gets a button that swaps in the pre-filled form
+    map.on('popupopen', (e) => {
+      const root = e.popup.getElement()?.querySelector<HTMLElement>('.place-popup[data-id]');
+      if (!root || root.querySelector('.popup-edit')) return;
+      const place = places.find((p) => p.id === root.dataset.id);
+      if (!place) return;
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'popup-edit mono-label';
+      edit.textContent = 'edit';
+      edit.addEventListener('click', (ev) => {
+        // setContent detaches this button mid-click; without stopPropagation
+        // the click bubbles to the map, which closes the popup (leaflet can't
+        // see the popup's disable-click flag through a detached parent chain)
+        ev.stopPropagation();
+        e.popup.setContent(formHtml(`edit · ${place.id}.md`, place));
+        wireForm('/__add-place/update', { slug: place.id });
+      });
+      root.appendChild(edit);
+    });
+  }
+</script>
+
+<style is:global>
+  .map-frame {
+    border: 1px solid var(--color-line);
+    padding: 6px;
+  }
+  #map {
+    height: min(70vh, 640px);
+    background: var(--color-bg-inset);
+  }
+
+  /* darken OSM tiles to sit with the blueprint palette */
+  #map .leaflet-tile-pane {
+    filter: grayscale(0.4) invert(0.92) hue-rotate(185deg) brightness(0.85) contrast(0.9);
+  }
+
+  .map-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-dim);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    cursor: pointer;
+  }
+  .legend-item input { accent-color: var(--color-gold); }
+
+  .add-place-btn {
+    margin-left: auto;
+    background: none;
+    border: 1px dashed var(--color-line-bright);
+    color: var(--color-text-dim);
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+  }
+  .add-place-btn:hover { color: var(--color-gold-bright); border-color: var(--color-gold); }
+  .add-place-btn.armed { color: var(--color-gold-bright); border-color: var(--color-gold); border-style: solid; }
+
+  .dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-bg);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+  }
+  .dot-event { background: var(--color-gold-bright); }
+  .dot-travel { background: var(--color-blue-bright); }
+  .dot-lived { background: #6fbf8f; }
+
+  .place-marker { background: none; border: none; }
+  .place-marker .dot { width: 14px; height: 14px; }
+
+  /* clusters: a circle that grows with the number of places inside */
+  .place-cluster { background: none; border: none; }
+  .cluster-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-bg-elevated) 88%, transparent);
+    border: 1.5px solid currentColor;
+    box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 18%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+  .cluster-event { color: var(--color-gold-bright); }
+  .cluster-travel { color: var(--color-blue-bright); }
+  .cluster-lived { color: #6fbf8f; }
+  .cluster-mixed { color: var(--color-text); }
+
+  /* dark popups */
+  .leaflet-popup-content-wrapper,
+  .leaflet-popup-tip {
+    background: var(--color-bg-elevated);
+    color: var(--color-text);
+    border: 1px solid var(--color-line-bright);
+    border-radius: 4px;
+  }
+  .leaflet-container a.leaflet-popup-close-button { color: var(--color-text-dim); }
+
+  .place-popup { display: grid; gap: 0.35rem; }
+  .place-popup .popup-meta {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+  }
+  .place-popup strong { font-family: var(--font-display); font-size: 1rem; }
+  .place-popup em { color: var(--color-text-dim); font-size: 0.85rem; }
+  .place-popup p { margin: 0; font-size: 0.85rem; color: var(--color-text-dim); }
+  .popup-notes { font-size: 0.85rem; color: var(--color-text-dim); }
+  .popup-notes :is(p, ul, ol) { margin: 0 0 0.35rem; }
+  .popup-imgs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+    margin-top: 0.25rem;
+  }
+  .popup-imgs img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 1px solid var(--color-line);
+    display: block;
+  }
+  /* a lone photo gets the full width at its natural aspect */
+  .popup-imgs img:only-child { grid-column: span 2; aspect-ratio: auto; }
+
+  .add-place-form input,
+  .add-place-form select,
+  .add-place-form textarea {
+    width: 100%;
+    background: var(--color-bg-inset);
+    border: 1px solid var(--color-line-bright);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.45rem;
+  }
+  .popup-edit {
+    justify-self: start;
+    margin-top: 0.25rem;
+    background: none;
+    border: 1px dashed var(--color-line-bright);
+    color: var(--color-text-dim);
+    padding: 0.15rem 0.5rem;
+    cursor: pointer;
+  }
+  .popup-edit:hover { color: var(--color-gold-bright); border-color: var(--color-gold); }
+
+  .add-place-form .add-file-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-dim);
+    display: grid;
+    gap: 0.25rem;
+  }
+  .add-place-form input[type='file'] { border-style: dashed; }
+  .add-place-form button {
+    background: var(--color-gold);
+    border: none;
+    color: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+  }
+  .add-place-form button:hover { background: var(--color-gold-bright); }
+
+  .leaflet-control-attribution {
+    background: color-mix(in srgb, var(--color-bg) 80%, transparent) !important;
+    color: var(--color-text-faint) !important;
+  }
+  .leaflet-control-attribution a { color: var(--color-text-dim) !important; }
+</style>
