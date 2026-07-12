@@ -19,7 +19,7 @@ const galleries = import.meta.glob<{ default: ImageMetadata }>(
 interface MapPlace {
   id: string;
   name: string;
-  kind: 'event' | 'travel' | 'lived';
+  kind: 'event' | 'travel' | 'lived' | 'want-to-go';
   coords: [number, number];
   date?: string;
   detail?: string;
@@ -80,6 +80,7 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
     <label class="legend-item"><input type="checkbox" data-kind="event" checked /> <span class="dot dot-event" aria-hidden="true"></span> Events</label>
     <label class="legend-item"><input type="checkbox" data-kind="travel" checked /> <span class="dot dot-travel" aria-hidden="true"></span> Travels</label>
     <label class="legend-item"><input type="checkbox" data-kind="lived" checked /> <span class="dot dot-lived" aria-hidden="true"></span> Lived</label>
+    <label class="legend-item"><input type="checkbox" data-kind="want-to-go" checked /> <span class="dot dot-want-to-go" aria-hidden="true"></span> Want to go</label>
     {import.meta.env.DEV && (
       <button id="add-place" class="add-place-btn mono-label" type="button" title="Dev only: click the map to create a place file">+ add place</button>
     )}
@@ -99,7 +100,7 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
   import L from 'leaflet';
   import 'leaflet.markercluster';
 
-  type PlaceKind = 'event' | 'travel' | 'lived';
+  type PlaceKind = 'event' | 'travel' | 'lived' | 'want-to-go';
   interface MapPlace {
     id: string;
     name: string;
@@ -130,6 +131,7 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
     });
 
   const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  const kindLabel = (kind: PlaceKind) => (kind === 'want-to-go' ? 'want to go' : kind);
 
   interface PlaceMarkerOptions extends L.MarkerOptions {
     kind: PlaceKind;
@@ -157,10 +159,10 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
     },
   }).addTo(map);
 
-  const kindMarkers: Record<PlaceKind, L.Marker[]> = { event: [], travel: [], lived: [] };
+  const kindMarkers: Record<PlaceKind, L.Marker[]> = { event: [], travel: [], lived: [], 'want-to-go': [] };
 
   for (const place of places) {
-    const meta = [place.kind, place.date].filter(Boolean).join(' · ');
+    const meta = [kindLabel(place.kind), place.date].filter(Boolean).join(' · ');
     const notes =
       document.querySelector<HTMLTemplateElement>(`template[data-notes="${CSS.escape(place.id)}"]`)
         ?.innerHTML ?? '';
@@ -204,14 +206,14 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
   // --- dev-only: create and edit src/content/places/<slug>.md from the map ---
   // (import.meta.env.DEV is statically false in builds, so none of this ships)
   if (import.meta.env.DEV) {
-    const KINDS: PlaceKind[] = ['travel', 'event', 'lived'];
+    const KINDS: PlaceKind[] = ['travel', 'event', 'lived', 'want-to-go'];
 
     const formHtml = (heading: string, v: Partial<MapPlace>) => `
       <form id="place-form" class="place-popup add-place-form">
         <span class="popup-meta">${esc(heading)}</span>
         <input name="name" placeholder="Name" required value="${esc(v.name ?? '')}" />
         <select name="kind">
-          ${KINDS.map((k) => `<option value="${k}"${v.kind === k ? ' selected' : ''}>${k}</option>`).join('')}
+          ${KINDS.map((k) => `<option value="${k}"${v.kind === k ? ' selected' : ''}>${kindLabel(k)}</option>`).join('')}
         </select>
         <input name="date" placeholder="Date (e.g. 2024)" value="${esc(v.date ?? '')}" />
         <input name="detail" placeholder="Detail (artist, production…)" value="${esc(v.detail ?? '')}" />
@@ -359,6 +361,7 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
   .dot-event { background: var(--color-gold-bright); }
   .dot-travel { background: var(--color-blue-bright); }
   .dot-lived { background: #6fbf8f; }
+  .dot-want-to-go { background: #a385d9; }
 
   .place-marker { background: none; border: none; }
   .place-marker .dot { width: 14px; height: 14px; }
@@ -382,6 +385,7 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
   .cluster-event { color: var(--color-gold-bright); }
   .cluster-travel { color: var(--color-blue-bright); }
   .cluster-lived { color: #6fbf8f; }
+  .cluster-want-to-go { color: #a385d9; }
   .cluster-mixed { color: var(--color-text); }
 
   /* dark popups */

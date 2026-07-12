@@ -3,9 +3,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import goodreads from '../data/goodreads.json';
 
 // snapshot written by `npm run fetch:media`; fetchedAt only changes when the shelf does
-const { currentlyReading, read } = goodreads;
+const { currentlyReading, toRead, read } = goodreads;
 const profileUrl = `https://www.goodreads.com/user/show/${goodreads.userId}`;
+const readShelfUrl = `https://www.goodreads.com/review/list/${goodreads.userId}?shelf=read`;
+const toReadShelfUrl = `https://www.goodreads.com/review/list/${goodreads.userId}?shelf=to-read`;
 const updated = goodreads.fetchedAt.slice(0, 16).replace('T', ' · ') + ' utc';
+
+// read[] is sorted most-recent-first; only show the latest handful here
+const RECENT_READ_COUNT = 14;
+const recentRead = read.slice(0, RECENT_READ_COUNT);
+
+// toRead[] is sorted most-recently-added-first; just a taste, not the whole shelf
+const WANT_TO_READ_COUNT = 10;
+const wantToReadExcerpt = toRead.slice(0, WANT_TO_READ_COUNT);
 
 const fmtDate = (iso: string | null) =>
   iso
@@ -47,9 +57,14 @@ const fmtDate = (iso: string | null) =>
   )}
 
   <section>
-    <h2 class="mono-label section-label">read / {String(read.length).padStart(2, '0')}</h2>
+    <h2 class="mono-label section-label">
+      read / {String(recentRead.length).padStart(2, '0')}
+      {read.length > recentRead.length && (
+        <a class="shelf-link" href={readShelfUrl} target="_blank" rel="noopener noreferrer">most recent — full shelf ({read.length}) →</a>
+      )}
+    </h2>
     <ul class="book-grid">
-      {read.map((book) => (
+      {recentRead.map((book) => (
         <li class="book">
           <a href={book.link} target="_blank" rel="noopener noreferrer">
             {book.cover && <img class="book-cover" src={book.cover} alt={`Cover of ${book.title}`} loading="lazy" referrerpolicy="no-referrer" />}
@@ -69,6 +84,26 @@ const fmtDate = (iso: string | null) =>
     </ul>
   </section>
 
+  {wantToReadExcerpt.length > 0 && (
+    <section>
+      <h2 class="mono-label section-label">
+        want to read / {String(wantToReadExcerpt.length).padStart(2, '0')}
+        <a class="shelf-link" href={toReadShelfUrl} target="_blank" rel="noopener noreferrer">full shelf ({toRead.length}) →</a>
+      </h2>
+      <ul class="book-grid">
+        {wantToReadExcerpt.map((book) => (
+          <li class="book">
+            <a href={book.link} target="_blank" rel="noopener noreferrer">
+              {book.cover && <img class="book-cover" src={book.cover} alt={`Cover of ${book.title}`} loading="lazy" referrerpolicy="no-referrer" />}
+            </a>
+            <a class="book-title" href={book.link} target="_blank" rel="noopener noreferrer">{book.title}</a>
+            <span class="book-author">{book.author}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
   <footer class="data-footer">
     <span class="mono-label">source / goodreads shelf rss</span>
     <span class="mono-label">most recent update / {updated}</span>
@@ -83,6 +118,10 @@ const fmtDate = (iso: string | null) =>
   section { margin-top: var(--space-4); }
 
   .section-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-2);
     color: var(--color-gold);
     border-bottom: 1px solid var(--color-line);
     padding-bottom: var(--space-1);
@@ -90,6 +129,12 @@ const fmtDate = (iso: string | null) =>
     font-size: 0.7rem;
     font-weight: 400;
   }
+
+  .shelf-link {
+    color: var(--color-text-faint);
+    font-weight: 400;
+  }
+  .shelf-link:hover { color: var(--color-blue-bright); }
 
   .current-list {
     list-style: none;

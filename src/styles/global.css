@@ -111,6 +111,39 @@
   --color-chain: #8d5f4b;
 }
 
+/* ===========================================================
+   THEME: monet
+   Impressionist light variant — hazy blue-green ground (sky and
+   water washes), lavender line work, muted coral takes the gold
+   role (Antibes rooftops), sage takes the vine role.
+   Toggled via data-theme on <html> (slider in Nav).
+=========================================================== */
+[data-theme='monet'] {
+  /* -- color: ground -- */
+  --color-bg: #e6ecea;
+  --color-bg-elevated: #f0f4f1;
+  --color-bg-inset: #dbe6e6;
+
+  /* -- color: line work -- */
+  --color-line: #c9d8da;
+  --color-line-bright: #9ab6bc;
+
+  /* -- color: accents -- */
+  --color-blue: #6f9bb0;
+  --color-blue-bright: #4f7f9e;
+  --color-gold: #cf8871;
+  --color-gold-bright: #b8664c;
+
+  /* -- color: text -- */
+  --color-text: #3d4d4c;
+  --color-text-dim: #728583;
+  --color-text-faint: #9bb0ac;
+
+  /* -- color: ornaments (vines, chains) -- */
+  --color-vine: #7fa06a;
+  --color-chain: #b08a5f;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -119,7 +152,8 @@ html {
   background: var(--color-bg);
   color-scheme: dark;
 }
-html[data-theme='sunset'] {
+html[data-theme='sunset'],
+html[data-theme='monet'] {
   color-scheme: light;
 }
 

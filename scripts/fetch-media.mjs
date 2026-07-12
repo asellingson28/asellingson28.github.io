@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const GOODREADS_USER_ID = '192886223';
 const LETTERBOXD_USER = 'aselling';
+const GITHUB_USER = 'asellingson28';
 
 const dataDir = fileURLToPath(new URL('../src/data/', import.meta.url));
 
@@ -88,6 +89,78 @@ async function fetchShelf(shelf) {
   return books;
 }
 
+// --- GitHub --------------------------------------------------------------
+
+async function fetchGithubRepos() {
+  const res = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?type=owner&sort=pushed&per_page=100`, {
+    headers: {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'asellingson28.github.io media snapshot (arjan.ellingson@gmail.com)',
+    },
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for GitHub repos`);
+  const repos = await res.json();
+  // forks and archived repos are noise on a "what I'm working on" list
+  return repos
+    .filter((r) => !r.fork && !r.archived)
+    .map((r) => ({
+      name: r.name,
+      description: r.description,
+      link: r.html_url,
+      homepage: r.homepage || null,
+      language: r.language,
+      stars: r.stargazers_count,
+      topics: r.topics ?? [],
+      pushedAt: toIsoDate(r.pushed_at),
+    }));
+}
+
+// The 12-month contribution calendar (the graph on a GitHub profile) is only
+// exposed via GraphQL and requires an authenticated token — the public REST
+// API has no equivalent. Needs a token in GH_CONTRIB_TOKEN (repo secret in
+// CI); any authenticated token works since the data itself is public. When
+// no token is available (e.g. a contributor's local checkout), skip and let
+// the caller fall back to whatever's already committed.
+async function fetchContributionCalendar() {
+  if (!process.env.GH_CONTRIB_TOKEN) {
+    console.log('contribution calendar: GH_CONTRIB_TOKEN not set, skipping');
+    return null;
+  }
+  const query = `
+    query($login: String!) {
+      user(login: $login) {
+        contributionsCollection {
+          contributionCalendar {
+            totalContributions
+            weeks {
+              contributionDays {
+                date
+                contributionCount
+              }
+            }
+          }
+        }
+      }
+    }`;
+  const res = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      Authorization: `bearer ${process.env.GH_CONTRIB_TOKEN}`,
+      'Content-Type': 'application/json',
+      'User-Agent': 'asellingson28.github.io media snapshot (arjan.ellingson@gmail.com)',
+    },
+    body: JSON.stringify({ query, variables: { login: GITHUB_USER } }),
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for GitHub contribution calendar`);
+  const json = await res.json();
+  if (json.errors) throw new Error(`GitHub GraphQL error: ${json.errors.map((e) => e.message).join('; ')}`);
+  const calendar = json.data.user.contributionsCollection.contributionCalendar;
+  return {
+    total: calendar.totalContributions,
+    days: calendar.weeks.flatMap((w) => w.contributionDays).map((d) => ({ date: d.date, count: d.contributionCount })),
+  };
+}
+
 // --- Letterboxd --------------------------------------------------------
 
 function parseFilm(item) {
@@ -120,35 +193,86 @@ async function fetchFilms() {
   return films;
 }
 
-// --- Letterboxd favorites (scraped — not available via RSS) ------------
+// --- Letterboxd favorites + watchlist (scraped — not available via RSS) ---
 
-async function fetchHtml(url) {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (asellingson28.github.io media snapshot; arjan.ellingson@gmail.com)' },
+// Both the favorites grid and the watchlist grid render posters via a React
+// component that resolves the image client-side — a plain HTML fetch only
+// ever sees a placeholder src, and Letterboxd's underlying image-lookup
+// endpoint sits behind a Cloudflare JS challenge. A real browser is the only
+// way to read the resolved <img src>.
+function parseGridEntries(entries, cropFrom) {
+  return entries.map(({ fullName, path, poster }) => {
+    const [, title, year] = fullName.match(/^(.*)\s\((\d{4})\)$/) ?? [null, fullName, null];
+    return {
+      title,
+      year: year ? Number(year) : null,
+      link: `https://letterboxd.com${path}`,
+      poster: poster && !poster.includes('empty-poster') ? poster.replace(cropFrom, '-0-600-0-900-crop') : null,
+    };
   });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
-  return res.text();
 }
 
-async function fetchFavorites() {
-  const html = await fetchHtml(`https://letterboxd.com/${LETTERBOXD_USER}/`);
-  const section = html.match(/<section id="favourites"[^>]*>([\s\S]*?)<\/section>/)?.[1] ?? '';
-  const entries = [...section.matchAll(/<li class="griditem">([\s\S]*?)<\/li>/g)].map((m) => {
-    const block = m[1];
-    const fullName = decode(block.match(/data-item-full-display-name="([^"]+)"/)?.[1] ?? '');
-    const path = block.match(/data-item-link="([^"]+)"/)?.[1] ?? '';
-    const [, title, year] = fullName.match(/^(.*)\s\((\d{4})\)$/) ?? [null, fullName, null];
-    return { title, year: year ? Number(year) : null, link: `https://letterboxd.com${path}` };
-  });
+async function fetchFavorites(page) {
+  await page.goto(`https://letterboxd.com/${LETTERBOXD_USER}/`, { waitUntil: 'networkidle' });
+  await page
+    .waitForFunction(() => !document.querySelector('#favourites img[src*="empty-poster"]'), { timeout: 15000 })
+    .catch(() => {}); // fall through with whatever resolved in time
 
-  // poster URLs aren't in the profile page (lazy-loaded); pull each from its film page
-  const favorites = [];
-  for (const entry of entries) {
-    const filmHtml = await fetchHtml(entry.link);
-    const poster = filmHtml.match(/"image":"([^"]+)"/)?.[1] ?? null;
-    favorites.push({ ...entry, poster });
+  const entries = await page.$$eval('#favourites .favourite-production-poster-container', (nodes) =>
+    nodes.map((node) => ({
+      fullName: node.querySelector('.react-component')?.getAttribute('data-item-full-display-name') ?? '',
+      path: node.querySelector('.react-component')?.getAttribute('data-item-link') ?? '',
+      poster: node.querySelector('img')?.getAttribute('src') ?? null,
+    }))
+  );
+
+  // bump the served crop up from the profile grid's 150×225 thumbnail
+  return parseGridEntries(entries, '-0-150-0-225-crop');
+}
+
+// Top 20 by popularity; the `/by/popular/` sort puts them in order, so the
+// first page (28 items) always has enough to slice from.
+async function fetchWatchlist(page) {
+  // networkidle is unreliable here (the grid page keeps background requests
+  // going); domcontentloaded + polling for resolved posters is faster and more consistent.
+  await page.goto(`https://letterboxd.com/${LETTERBOXD_USER}/watchlist/by/popular/`, { waitUntil: 'domcontentloaded' });
+  await page
+    .waitForFunction(() => !document.querySelector('.griditem img[src*="empty-poster"]'), { timeout: 15000 })
+    .catch(() => {});
+
+  const entries = await page.$$eval('.griditem .react-component', (nodes) =>
+    nodes.slice(0, 20).map((node) => ({
+      fullName: node.getAttribute('data-item-full-display-name') ?? '',
+      path: node.getAttribute('data-item-link') ?? '',
+      poster: node.querySelector('img')?.getAttribute('src') ?? null,
+    }))
+  );
+
+  return parseGridEntries(entries, '-0-125-0-187-crop');
+}
+
+async function fetchFavoritesAndWatchlist() {
+  const { chromium } = await import('playwright-core');
+  const browser = await chromium.launch();
+  try {
+    const contextOptions = {
+      userAgent:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 asellingson28.github.io media snapshot (arjan.ellingson@gmail.com)',
+    };
+    // Separate contexts per page: reusing one session for both requests trips
+    // Letterboxd's Cloudflare bot check on the second navigation.
+    const favoritesContext = await browser.newContext(contextOptions);
+    const favorites = await fetchFavorites(await favoritesContext.newPage());
+    await favoritesContext.close();
+
+    const watchlistContext = await browser.newContext(contextOptions);
+    const watchlist = await fetchWatchlist(await watchlistContext.newPage());
+    await watchlistContext.close();
+
+    return { favorites, watchlist };
+  } finally {
+    await browser.close();
   }
-  return favorites;
 }
 
 // --- write, preserving fetchedAt when content is unchanged -------------
@@ -172,18 +296,33 @@ function writeSnapshot(file, data) {
 
 const fetchedAt = new Date().toISOString();
 
-const [read, currentlyReading, films, favorites] = await Promise.all([
+const [read, currentlyReading, toRead, films, { favorites, watchlist }, repos, fetchedCalendar] = await Promise.all([
   fetchShelf('read'),
   fetchShelf('currently-reading'),
+  fetchShelf('to-read'),
   fetchFilms(),
-  fetchFavorites(),
+  fetchFavoritesAndWatchlist(),
+  fetchGithubRepos(),
+  fetchContributionCalendar(),
 ]);
 
 const byRecency = (a, b) => (b.readAt ?? b.addedAt ?? '').localeCompare(a.readAt ?? a.addedAt ?? '');
 read.sort(byRecency);
+toRead.sort((a, b) => (b.addedAt ?? '').localeCompare(a.addedAt ?? ''));
+repos.sort((a, b) => (b.pushedAt ?? '').localeCompare(a.pushedAt ?? ''));
 
-writeSnapshot('goodreads.json', { fetchedAt, userId: GOODREADS_USER_ID, currentlyReading, read });
-writeSnapshot('letterboxd.json', { fetchedAt, username: LETTERBOXD_USER, films, favorites });
+// fetchContributionCalendar returns null when no token is configured — keep
+// whatever was last committed rather than wiping it out.
+let contributions = fetchedCalendar;
+if (!contributions) {
+  try {
+    contributions = JSON.parse(readFileSync(dataDir + 'github.json', 'utf8')).contributions ?? null;
+  } catch {}
+}
+
+writeSnapshot('goodreads.json', { fetchedAt, userId: GOODREADS_USER_ID, currentlyReading, toRead, read });
+writeSnapshot('letterboxd.json', { fetchedAt, username: LETTERBOXD_USER, films, favorites, watchlist });
+writeSnapshot('github.json', { fetchedAt, username: GITHUB_USER, repos, contributions });
 console.log(
-  `${read.length} read, ${currentlyReading.length} currently reading, ${films.length} films, ${favorites.length} favorites`
+  `${read.length} read, ${currentlyReading.length} currently reading, ${toRead.length} to read, ${films.length} films, ${favorites.length} favorites, ${watchlist.length} watchlist, ${repos.length} repos`
 );
