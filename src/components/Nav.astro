@@ -2,13 +2,12 @@
 // Signature element: header styled after a technical drawing's title block —
 // an index of numbered entries with a hairline rule, rather than a generic navbar.
 const navItems = [
-  { n: '01', label: 'Career', href: 'https://asellingson28.github.io/resume/ArjanEllingsonResume.pdf' },
-  { n: '02', label: 'Projects', href: '/projects' },
+  { n: '01', label: 'Working', href: 'https://asellingson28.github.io/resume/ArjanEllingsonResume.pdf' },
+  { n: '02', label: 'Doing', href: '/projects' },
   { n: '03', label: 'Writing', href: '/blog' },
   { n: '04', label: 'Reading', href: '/books' },
   { n: '05', label: 'Watching', href: '/films' },
   { n: '06', label: 'Places', href: '/travels' },
-  { n: '07', label: 'About', href: '/about' },
 ];
 
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
@@ -18,7 +17,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   <div class="wrap-wide bar">
     <a href="/" class="mark">
       <span class="mark-text">ASELLING</span>
-      <span class="mark-sub mono-label">personal index</span>
+      <span class="mark-sub mono-label">personal archive</span>
     </a>
 
     <nav aria-label="Primary">
@@ -41,12 +40,20 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   <div class="wrap-wide theme-row">
     <div class="theme-switch">
       <span class="mono-label switch-name" id="theme-switch-name">theme</span>
-      <input type="range" id="theme-slider" min="0" max="2" step="1" value="0" aria-labelledby="theme-switch-name" />
+      <div class="theme-wheel" role="group" aria-labelledby="theme-switch-name">
+        <span class="wheel-needle" aria-hidden="true"></span>
+        <button type="button" class="wheel-point wheel-n" data-theme-index="0" aria-label="royal" title="royal"></button>
+        <button type="button" class="wheel-point wheel-e" data-theme-index="1" aria-label="sunset" title="sunset"></button>
+        <button type="button" class="wheel-point wheel-s" data-theme-index="2" aria-label="cherry" title="cherry"></button>
+        <button type="button" class="wheel-point wheel-w" data-theme-index="3" aria-label="monet" title="monet"></button>
+      </div>
       <button type="button" class="mono-label opt" data-theme-index="0">royal</button>
       <span class="mono-label sep" aria-hidden="true">/</span>
       <button type="button" class="mono-label opt" data-theme-index="1">sunset</button>
       <span class="mono-label sep" aria-hidden="true">/</span>
       <button type="button" class="mono-label opt" data-theme-index="2">cherry</button>
+      <span class="mono-label sep" aria-hidden="true">/</span>
+      <button type="button" class="mono-label opt" data-theme-index="3">monet</button>
     </div>
   </div>
   <div class="rule" aria-hidden="true"></div>
@@ -136,47 +143,66 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   }
   .switch-name { padding-right: 0.3rem; border-right: 1px solid var(--color-line); }
 
-  /* 3-position slider styled as a drafting-instrument track */
-  .theme-switch input {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 52px;
-    height: 16px;
+  /* 4-position dial styled as a drafting compass rose: a hairline
+     circle with a needle that swings to the N/E/S/W point of the
+     selected theme. */
+  .theme-wheel {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+  .theme-wheel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--color-line-bright);
+    border-radius: 50%;
+    background: var(--color-bg-inset);
+  }
+  .theme-wheel::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--color-line-bright);
+    transform: translate(-50%, -50%);
+  }
+  .wheel-needle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1px;
+    height: 10px;
+    background: var(--color-gold);
+    transform-origin: 50% 100%;
+    transform: translate(-50%, -100%) rotate(0deg);
+    transition: transform 0.25s ease;
+  }
+  .wheel-point {
+    position: absolute;
+    width: 8px;
+    height: 8px;
     margin: 0;
-    background: transparent;
+    padding: 0;
+    border: 1px solid var(--color-line-bright);
+    border-radius: 50%;
+    background: var(--color-bg);
     cursor: pointer;
   }
-  .theme-switch input::-webkit-slider-runnable-track {
-    height: 14px;
-    border: 1px solid var(--color-line-bright);
-    background: var(--color-bg-inset);
-  }
-  .theme-switch input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 10px;
-    height: 8px;
-    margin-top: 2px;
-    border: none;
-    border-radius: 0;
-    background: var(--color-gold);
-  }
-  .theme-switch input::-moz-range-track {
-    height: 14px;
-    box-sizing: border-box;
-    border: 1px solid var(--color-line-bright);
-    background: var(--color-bg-inset);
-  }
-  .theme-switch input::-moz-range-thumb {
-    width: 10px;
-    height: 8px;
-    border: none;
-    border-radius: 0;
-    background: var(--color-gold);
-  }
-  .theme-switch input:focus-visible {
+  .wheel-point:hover { border-color: var(--color-gold); }
+  .wheel-point.active { background: var(--color-gold); border-color: var(--color-gold); }
+  .wheel-point:focus-visible {
     outline: 2px solid var(--color-gold);
     outline-offset: 2px;
   }
+  .wheel-n { top: -4px; left: 50%; transform: translate(-50%, 0); }
+  .wheel-e { top: 50%; right: -4px; transform: translate(0, -50%); }
+  .wheel-s { bottom: -4px; left: 50%; transform: translate(-50%, 0); }
+  .wheel-w { top: 50%; left: -4px; transform: translate(0, -50%); }
 
   .theme-switch .opt {
     background: none;
@@ -197,15 +223,16 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 </style>
 
 <script>
-  const themes = ['royal', 'sunset', 'cherry'];
+  const themes = ['royal', 'sunset', 'cherry', 'monet'];
   const root = document.documentElement;
-  const slider = document.getElementById('theme-slider') as HTMLInputElement;
+  const needle = document.querySelector<HTMLElement>('.wheel-needle')!;
   const opts = [...document.querySelectorAll<HTMLButtonElement>('.theme-switch .opt')];
+  const points = [...document.querySelectorAll<HTMLButtonElement>('.theme-switch .wheel-point')];
 
   const sync = (index: number) => {
-    slider.value = String(index);
-    slider.setAttribute('aria-valuetext', themes[index]);
+    needle.style.transform = `translate(-50%, -100%) rotate(${index * 90}deg)`;
     opts.forEach((opt) => opt.classList.toggle('active', Number(opt.dataset.themeIndex) === index));
+    points.forEach((point) => point.classList.toggle('active', Number(point.dataset.themeIndex) === index));
   };
 
   const apply = (index: number) => {
@@ -221,6 +248,6 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   };
 
   sync(Math.max(0, themes.indexOf(root.dataset.theme ?? 'royal')));
-  slider.addEventListener('input', () => apply(Number(slider.value)));
   opts.forEach((opt) => opt.addEventListener('click', () => apply(Number(opt.dataset.themeIndex))));
+  points.forEach((point) => point.addEventListener('click', () => apply(Number(point.dataset.themeIndex))));
 </script>

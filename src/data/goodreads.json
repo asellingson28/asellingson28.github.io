@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-11T16:25:05.139Z",
+  "fetchedAt": "2026-07-12T05:01:53.401Z",
   "userId": "192886223",
   "currentlyReading": [
     {
@@ -20,6 +20,718 @@
       "rating": 0,
       "readAt": null,
       "addedAt": "2026-05-19",
+      "review": null
+    }
+  ],
+  "toRead": [
+    {
+      "title": "The Rebel",
+      "author": "Albert Camus",
+      "link": "https://www.goodreads.com/book/show/11990",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1547122397l/11990._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-07-10",
+      "review": null
+    },
+    {
+      "title": "The Great Good Place: Cafés, Coffee Shops, Bookstores, Bars, Hair Salons and Other Hangouts at the Heart of a Community",
+      "author": "Ray Oldenburg",
+      "link": "https://www.goodreads.com/book/show/4119",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1388184052l/4119.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-07-08",
+      "review": null
+    },
+    {
+      "title": "The Age of Extraction: How Tech Platforms Conquered the Economy and Threaten Our Future Prosperity",
+      "author": "Tim Wu",
+      "link": "https://www.goodreads.com/book/show/226747018",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1748232901l/226747018._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-07-07",
+      "review": null
+    },
+    {
+      "title": "The Way of Excellence: A Guide to True Greatness and Deep Satisfaction in a Chaotic World",
+      "author": "Brad Stulberg",
+      "link": "https://www.goodreads.com/book/show/232345521",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1750521420l/232345521._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-07-05",
+      "review": null
+    },
+    {
+      "title": "Hearts and Minds",
+      "author": "Amanda Craig",
+      "link": "https://www.goodreads.com/book/show/6431295",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1327633008l/6431295.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-07-03",
+      "review": null
+    },
+    {
+      "title": "A Marriage at Sea: A True Story of Love, Obsession, and Shipwreck",
+      "author": "Sophie Elmhirst",
+      "link": "https://www.goodreads.com/book/show/220239083",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1731041831l/220239083._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-06-28",
+      "review": null
+    },
+    {
+      "title": "The Invisible Life of Addie LaRue",
+      "author": "V.E. Schwab",
+      "link": "https://www.goodreads.com/book/show/50623864",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1584633432l/50623864.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-06-26",
+      "review": null
+    },
+    {
+      "title": "The New Dark Ages: The Death of Reading and the Dawn of the Post-Literate Society",
+      "author": "James Marriott",
+      "link": "https://www.goodreads.com/book/show/244717250",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1774579311l/244717250._SX318_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-06-25",
+      "review": null
+    },
+    {
+      "title": "Piranesi",
+      "author": "Susanna Clarke",
+      "link": "https://www.goodreads.com/book/show/50202953",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1773750050l/50202953._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-06-11",
+      "review": null
+    },
+    {
+      "title": "Either/Or: A Fragment of Life",
+      "author": "Søren Kierkegaard",
+      "link": "https://www.goodreads.com/book/show/24970",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1747674161l/24970._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-05-31",
+      "review": null
+    },
+    {
+      "title": "The War of Art",
+      "author": "Steven Pressfield",
+      "link": "https://www.goodreads.com/book/show/1319",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1574272133l/1319._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-05-21",
+      "review": null
+    },
+    {
+      "title": "Tuesdays with Morrie: An Old Man, a Young Man, and Life's Greatest Lesson",
+      "author": "Mitch Albom",
+      "link": "https://www.goodreads.com/book/show/6900",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1423763749l/6900.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-05-21",
+      "review": null
+    },
+    {
+      "title": "Die, My Love",
+      "author": "Ariana Harwicz",
+      "link": "https://www.goodreads.com/book/show/36098957",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1507922567l/36098957._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-05-19",
+      "review": null
+    },
+    {
+      "title": "Regretting You",
+      "author": "Colleen Hoover",
+      "link": "https://www.goodreads.com/book/show/44582454",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1760993353l/44582454._SX318_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-05-19",
+      "review": null
+    },
+    {
+      "title": "The Old Man and the Sea",
+      "author": "Ernest Hemingway",
+      "link": "https://www.goodreads.com/book/show/2165",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1329189714l/2165._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-04-22",
+      "review": null
+    },
+    {
+      "title": "The Virgin Suicides",
+      "author": "Jeffrey Eugenides",
+      "link": "https://www.goodreads.com/book/show/10956",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1319032910l/10956.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-04-21",
+      "review": null
+    },
+    {
+      "title": "The Employees",
+      "author": "Olga Ravn",
+      "link": "https://www.goodreads.com/book/show/53780642",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1591135601l/53780642.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-04-05",
+      "review": null
+    },
+    {
+      "title": "Between a Rock and a Hard Place",
+      "author": "Aron Ralston",
+      "link": "https://www.goodreads.com/book/show/166562",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1442193831l/166562._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-03-27",
+      "review": null
+    },
+    {
+      "title": "Thus Spoke Zarathustra",
+      "author": "Friedrich Nietzsche",
+      "link": "https://www.goodreads.com/book/show/51893",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1650680683l/51893._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-03-24",
+      "review": null
+    },
+    {
+      "title": "To Photograph Is to Learn How to Die: An Essay with Digressions",
+      "author": "Tim Carpenter",
+      "link": "https://www.goodreads.com/book/show/75473334",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1672589313l/75473334._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-03-24",
+      "review": null
+    },
+    {
+      "title": "The Lost Painting: The Quest for a Caravaggio Masterpiece",
+      "author": "Jonathan Harr",
+      "link": "https://www.goodreads.com/book/show/27398",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1388187150l/27398.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-03-17",
+      "review": null
+    },
+    {
+      "title": "The Perks of Being a Wallflower",
+      "author": "Stephen Chbosky",
+      "link": "https://www.goodreads.com/book/show/22628",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1650033115l/22628._SX318_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-03-11",
+      "review": null
+    },
+    {
+      "title": "Better Than the Movies (Better Than the Movies, #1)",
+      "author": "Lynn Painter",
+      "link": "https://www.goodreads.com/book/show/55710822",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1618150545l/55710822.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-03-08",
+      "review": null
+    },
+    {
+      "title": "Shatter Me (Shatter Me, #1)",
+      "author": "Tahereh Mafi",
+      "link": "https://www.goodreads.com/book/show/10429045",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1310649047l/10429045.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-03-02",
+      "review": null
+    },
+    {
+      "title": "Atonement",
+      "author": "Ian McEwan",
+      "link": "https://www.goodreads.com/book/show/6867",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1773518365l/6867._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-03-01",
+      "review": null
+    },
+    {
+      "title": "Little Women",
+      "author": "Louisa May Alcott",
+      "link": "https://www.goodreads.com/book/show/80286742",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1674079491l/80286742._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-02-20",
+      "review": null
+    },
+    {
+      "title": "American Prometheus: The Triumph and Tragedy of J. Robert Oppenheimer",
+      "author": "Kai Bird",
+      "link": "https://www.goodreads.com/book/show/80571",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1686079247l/80571.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-01-05",
+      "review": null
+    },
+    {
+      "title": "Mona's Eyes",
+      "author": "Thomas Schlesser",
+      "link": "https://www.goodreads.com/book/show/224058091",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1738063159l/224058091._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-12-26",
+      "review": null
+    },
+    {
+      "title": "What If?: Serious Scientific Answers to Absurd Hypothetical Questions",
+      "author": "Randall Munroe",
+      "link": "https://www.goodreads.com/book/show/21413662",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1451351509l/21413662._SX318_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-11-20",
+      "review": null
+    },
+    {
+      "title": "Diary of an Oxygen Thief",
+      "author": "Anonymous",
+      "link": "https://www.goodreads.com/book/show/1561703",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1327794298l/1561703.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-11-10",
+      "review": null
+    },
+    {
+      "title": "The Maniac",
+      "author": "Benjamín Labatut",
+      "link": "https://www.goodreads.com/book/show/75665931",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1679411721l/75665931.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-11-06",
+      "review": null
+    },
+    {
+      "title": "Letters to a Young Poet",
+      "author": "Rainer Maria Rilke",
+      "link": "https://www.goodreads.com/book/show/46199",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1321994947l/46199.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-10-27",
+      "review": null
+    },
+    {
+      "title": "The Count of Monte Cristo",
+      "author": "Alexandre Dumas",
+      "link": "https://www.goodreads.com/book/show/7126",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1724863997l/7126._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-09-16",
+      "review": null
+    },
+    {
+      "title": "Bad Things Happened in This Room",
+      "author": "Marie Still",
+      "link": "https://www.goodreads.com/book/show/222254096",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1733940528l/222254096._SX318_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-09-16",
+      "review": null
+    },
+    {
+      "title": "Beat the Dealer: A Winning Strategy for the Game of Twenty-One",
+      "author": "Edward O. Thorp",
+      "link": "https://www.goodreads.com/book/show/891883",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1320489584l/891883.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-09-05",
+      "review": null
+    },
+    {
+      "title": "Designing Your Life: How to Build a Well-Lived, Joyful Life",
+      "author": "Bill Burnett",
+      "link": "https://www.goodreads.com/book/show/28814910",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1469406987l/28814910.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-09-05",
+      "review": null
+    },
+    {
+      "title": "The Fall (Vintage International)",
+      "author": "Albert Camus",
+      "link": "https://www.goodreads.com/book/show/11991",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1738704293l/11991._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-30",
+      "review": null
+    },
+    {
+      "title": "The First Man",
+      "author": "Albert Camus",
+      "link": "https://www.goodreads.com/book/show/15694",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1374680457l/15694.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-30",
+      "review": null
+    },
+    {
+      "title": "Exile and the Kingdom (Vintage International)",
+      "author": "Albert Camus",
+      "link": "https://www.goodreads.com/book/show/76826",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1482768294l/76826.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-30",
+      "review": null
+    },
+    {
+      "title": "Man's Search for Meaning",
+      "author": "Viktor E. Frankl",
+      "link": "https://www.goodreads.com/book/show/4069",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1535419394l/4069._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-23",
+      "review": null
+    },
+    {
+      "title": "Fight Club",
+      "author": "Chuck Palahniuk",
+      "link": "https://www.goodreads.com/book/show/36236124",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1558216416l/36236124._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-23",
+      "review": null
+    },
+    {
+      "title": "Nausea",
+      "author": "Jean-Paul Sartre",
+      "link": "https://www.goodreads.com/book/show/298275",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1738688084l/298275._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-23",
+      "review": null
+    },
+    {
+      "title": "Ultralearning: The Essential Guide To Mastering Hard Skills And Future-Proofing Your Career",
+      "author": "Scott H. Young",
+      "link": "https://www.goodreads.com/book/show/44770129",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1554211384l/44770129._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-22",
+      "review": null
+    },
+    {
+      "title": "Never Eat Alone: And Other Secrets to Success, One Relationship at a Time",
+      "author": "Keith Ferrazzi",
+      "link": "https://www.goodreads.com/book/show/84699",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1320417949l/84699.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-22",
+      "review": null
+    },
+    {
+      "title": "The Time Machine / The Invisible Man",
+      "author": "H.G. Wells",
+      "link": "https://www.goodreads.com/book/show/17136",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1347929785l/17136.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-19",
+      "review": null
+    },
+    {
+      "title": "The War of the Worlds",
+      "author": "H.G. Wells",
+      "link": "https://www.goodreads.com/book/show/8909",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1320391644l/8909.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-19",
+      "review": null
+    },
+    {
+      "title": "The Time Machine",
+      "author": "H.G. Wells",
+      "link": "https://www.goodreads.com/book/show/2493",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1327942880l/2493.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-19",
+      "review": null
+    },
+    {
+      "title": "The Invisible Man",
+      "author": "H.G. Wells",
+      "link": "https://www.goodreads.com/book/show/17184",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1630661776l/17184._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-19",
+      "review": null
+    },
+    {
+      "title": "The Death of Ivan Ilych",
+      "author": "Leo Tolstoy",
+      "link": "https://www.goodreads.com/book/show/18386",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1663546974l/18386._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-18",
+      "review": null
+    },
+    {
+      "title": "The 4-Hour Work Week: Escape the 9-5, Live Anywhere and Join the New Rich",
+      "author": "Timothy Ferriss",
+      "link": "https://www.goodreads.com/book/show/9278897",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1348972089l/9278897.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-18",
+      "review": null
+    },
+    {
+      "title": "The Gambler",
+      "author": "Fyodor Dostoevsky",
+      "link": "https://www.goodreads.com/book/show/12857",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1751435148l/12857._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-15",
+      "review": null
+    },
+    {
+      "title": "The Idiot",
+      "author": "Fyodor Dostoevsky",
+      "link": "https://www.goodreads.com/book/show/12505",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1657539107l/12505._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-15",
+      "review": null
+    },
+    {
+      "title": "The Plague",
+      "author": "Albert Camus",
+      "link": "https://www.goodreads.com/book/show/11989",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1503362434l/11989._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-15",
+      "review": null
+    },
+    {
+      "title": "The Art of Frugal Hedonism: A Guide to Spending Less While Enjoying Everything More",
+      "author": "Annie Raser-Rowland",
+      "link": "https://www.goodreads.com/book/show/30259572",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1476696732l/30259572._SX318_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "The Subtle Art of Not Giving a F*ck: A Counterintuitive Approach to Living a Good Life",
+      "author": "Mark Manson",
+      "link": "https://www.goodreads.com/book/show/28257707",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1465761302l/28257707.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Getting Things Done: The Art of Stress-Free Productivity",
+      "author": "David    Allen",
+      "link": "https://www.goodreads.com/book/show/1633",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1312474060l/1633.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Walden & Civil Disobedience",
+      "author": "Henry David Thoreau",
+      "link": "https://www.goodreads.com/book/show/116020",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1386919871l/116020.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "This Is Strategy: Make Better Plans (Create a Strategy to Elevate Your Career, Community & Life)",
+      "author": "Seth Godin",
+      "link": "https://www.goodreads.com/book/show/213458886",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1731088404l/213458886._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Start with Why: How Great Leaders Inspire Everyone to Take Action",
+      "author": "Simon Sinek",
+      "link": "https://www.goodreads.com/book/show/7108725",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1360936414l/7108725.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "A World Without Email: Reimagining Work in an Age of Communication Overload",
+      "author": "Cal Newport",
+      "link": "https://www.goodreads.com/book/show/54326146",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1597016311l/54326146.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "So Good They Can't Ignore You: Why Skills Trump Passion in the Quest for Work You Love",
+      "author": "Cal Newport",
+      "link": "https://www.goodreads.com/book/show/13525945",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1360564614l/13525945.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Slow Productivity: The Lost Art of Accomplishment Without Burnout",
+      "author": "Cal Newport",
+      "link": "https://www.goodreads.com/book/show/197773418",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1692883158l/197773418._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Deep Work: Rules for Focused Success in a Distracted World",
+      "author": "Cal Newport",
+      "link": "https://www.goodreads.com/book/show/25744928",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1447957962l/25744928._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "A Tale of Two Cities",
+      "author": "Charles Dickens",
+      "link": "https://www.goodreads.com/book/show/1953",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1344922523l/1953.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Anna Karenina",
+      "author": "Leo Tolstoy",
+      "link": "https://www.goodreads.com/book/show/15823480",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1546091617l/15823480._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "For You and Only You (You, #4)",
+      "author": "Caroline Kepnes",
+      "link": "https://www.goodreads.com/book/show/45730983",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1668191931l/45730983.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Caroline Kepnes You Series 4 Books Collection Set",
+      "author": "Caroline Kepnes",
+      "link": "https://www.goodreads.com/book/show/60526236",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1646086933l/60526236._SX318_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "You Love Me (You, #3)",
+      "author": "Caroline Kepnes",
+      "link": "https://www.goodreads.com/book/show/58763110",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1628890082l/58763110._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "Hidden Bodies (You, #2)",
+      "author": "Caroline Kepnes",
+      "link": "https://www.goodreads.com/book/show/29430824",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1550176155l/29430824._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "You (You, #1)",
+      "author": "Caroline Kepnes",
+      "link": "https://www.goodreads.com/book/show/36430011",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1549463282l/36430011._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
+      "review": null
+    },
+    {
+      "title": "The Brothers Karamazov",
+      "author": "Fyodor Dostoevsky",
+      "link": "https://www.goodreads.com/book/show/4934",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1427728126l/4934.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2025-08-11",
       "review": null
     }
   ],

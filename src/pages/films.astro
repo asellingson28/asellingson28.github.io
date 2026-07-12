@@ -4,7 +4,7 @@ import letterboxd from '../data/letterboxd.json';
 
 // snapshot written by `npm run fetch:media`; fetchedAt only changes when the diary does.
 // The RSS feed only carries the ~50 most recent diary entries.
-const { films, favorites } = letterboxd;
+const { films, favorites, watchlist } = letterboxd;
 const profileUrl = `https://letterboxd.com/${letterboxd.username}/`;
 const updated = letterboxd.fetchedAt.slice(0, 16).replace('T', ' · ') + ' utc';
 
@@ -27,6 +27,7 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
   <p class="lede">
     Recent entries from my <a href={profileUrl} target="_blank" rel="noopener noreferrer">Letterboxd diary</a>.
   </p>
+  <p class="mono-label updated-top">most recent update / {updated}</p>
 
   {favorites.length > 0 && (
     <section class="favorites">
@@ -37,6 +38,24 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
             <a href={film.link} target="_blank" rel="noopener noreferrer">
               {film.poster && <img class="favorite-poster" src={film.poster} alt={`Poster for ${film.title}`} loading="lazy" referrerpolicy="no-referrer" />}
               <span class="favorite-title">{film.title}{film.year && <span class="film-year"> ({film.year})</span>}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {watchlist.length > 0 && (
+    <section>
+      <h2 class="mono-label section-label">watchlist / top {String(watchlist.length).padStart(2, '0')} most popular</h2>
+      <ul class="film-grid">
+        {watchlist.map((film) => (
+          <li class="film">
+            <a href={film.link} target="_blank" rel="noopener noreferrer">
+              {film.poster && <img class="film-poster" src={film.poster} alt={`Poster for ${film.title}`} loading="lazy" referrerpolicy="no-referrer" />}
+            </a>
+            <a class="film-title" href={film.link} target="_blank" rel="noopener noreferrer">
+              {film.title}{film.year && <span class="film-year"> ({film.year})</span>}
             </a>
           </li>
         ))}
@@ -78,6 +97,8 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
   .lede a { color: var(--color-blue-bright); }
   .lede a:hover { color: var(--color-gold-bright); }
 
+  .updated-top { margin: var(--space-1) 0 0; color: var(--color-text-faint); }
+
   section { margin-top: var(--space-4); }
 
   .section-label {
@@ -94,13 +115,13 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(4, minmax(90px, 140px));
-    gap: var(--space-2);
+    grid-template-columns: repeat(4, minmax(160px, 260px));
+    gap: var(--space-3);
   }
   .favorite a {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.5rem;
   }
   .favorite-poster {
     width: 100%;
@@ -112,7 +133,7 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
   .favorite a:hover .favorite-poster { border-color: var(--color-gold); }
   .favorite-title {
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 1.05rem;
     line-height: 1.3;
     color: var(--color-text);
   }
