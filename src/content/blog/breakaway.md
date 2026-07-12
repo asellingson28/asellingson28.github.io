@@ -3,7 +3,7 @@ title: "Breakaway"
 date: 2026-07-07
 description: "Getting the first post out — Thoughts on switching to a flip phone."
 tags: ["digital-minimalism"]
-coverCaption: "By Claude Monet - Self-photographed, Public Domain, https://commons.wikimedia.org/w/index.php?curid=44758348"
+coverCaption: "<em>Gare Saint-Lazare</em>. By Claude Monet - Self-photographed, Public Domain, https://commons.wikimedia.org/w/index.php?curid=44758348"
 cover: ./breakaway-cover.jpg
 ---
 

@@ -10,14 +10,6 @@ const readShelfUrl = `https://www.goodreads.com/review/list/${goodreads.userId}?
 const toReadShelfUrl = `https://www.goodreads.com/review/list/${goodreads.userId}?shelf=to-read`;
 const updated = goodreads.fetchedAt.slice(0, 16).replace('T', ' · ') + ' utc';
 
-// read[] is sorted most-recent-first; only show the latest handful here
-const RECENT_READ_COUNT = 14;
-const recentRead = read.slice(0, RECENT_READ_COUNT);
-
-// toRead[] is sorted most-recently-added-first; just a taste, not the whole shelf
-const WANT_TO_READ_COUNT = 10;
-const wantToReadExcerpt = toRead.slice(0, WANT_TO_READ_COUNT);
-
 const fmtDate = (iso: string | null) =>
   iso
     ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', {
@@ -62,13 +54,11 @@ const fmtDate = (iso: string | null) =>
 
   <section>
     <h2 class="mono-label section-label">
-      read / {String(recentRead.length).padStart(2, '0')}
-      {read.length > recentRead.length && (
-        <a class="shelf-link" href={readShelfUrl} target="_blank" rel="noopener noreferrer">most recent — full shelf ({read.length}) →</a>
-      )}
+      read / {String(read.length).padStart(2, '0')}
+      <a class="shelf-link" href={readShelfUrl} target="_blank" rel="noopener noreferrer">view on Goodreads →</a>
     </h2>
     <ul class="book-grid">
-      {recentRead.map((book) => (
+      {read.map((book) => (
         <li class="book">
           <a href={book.link} target="_blank" rel="noopener noreferrer">
             {book.cover && <img class="book-cover" src={book.cover} alt={`Cover of ${book.title}`} loading="lazy" referrerpolicy="no-referrer" />}
@@ -88,14 +78,14 @@ const fmtDate = (iso: string | null) =>
     </ul>
   </section>
 
-  {wantToReadExcerpt.length > 0 && (
+  {toRead.length > 0 && (
     <section>
       <h2 class="mono-label section-label">
-        want to read / {String(wantToReadExcerpt.length).padStart(2, '0')}
-        <a class="shelf-link" href={toReadShelfUrl} target="_blank" rel="noopener noreferrer">full shelf ({toRead.length}) →</a>
+        want to read / {String(toRead.length).padStart(2, '0')}
+        <a class="shelf-link" href={toReadShelfUrl} target="_blank" rel="noopener noreferrer">view on Goodreads →</a>
       </h2>
       <ul class="book-grid">
-        {wantToReadExcerpt.map((book) => (
+        {toRead.map((book) => (
           <li class="book">
             <a href={book.link} target="_blank" rel="noopener noreferrer">
               {book.cover && <img class="book-cover" src={book.cover} alt={`Cover of ${book.title}`} loading="lazy" referrerpolicy="no-referrer" />}
@@ -200,10 +190,6 @@ const fmtDate = (iso: string | null) =>
     font-size: 0.95rem;
     line-height: 1.3;
     color: var(--color-text);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
   .book-title:hover { color: var(--color-gold-bright); }
   .book .book-title { margin-top: 0.2rem; }

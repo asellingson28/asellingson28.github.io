@@ -30,8 +30,8 @@ const { Content } = await render(post);
   )}
   {post.data.cover && (
     <figure class="post-cover">
-      <Image src={post.data.cover} alt={post.data.coverCaption ?? `Cover art for ${post.data.title}`} width={720} />
-      {post.data.coverCaption && <figcaption class="mono-label">{post.data.coverCaption}</figcaption>}
+      <Image src={post.data.cover} alt={post.data.coverCaption?.replace(/<[^>]+>/g, '') ?? `Cover art for ${post.data.title}`} width={720} />
+      {post.data.coverCaption && <figcaption class="mono-label" set:html={post.data.coverCaption} />}
     </figure>
   )}
   <div class="prose">
