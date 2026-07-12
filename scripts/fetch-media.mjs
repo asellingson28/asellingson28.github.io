@@ -176,6 +176,10 @@ function parseFilm(item) {
     rewatch: pick(item, 'letterboxd:rewatch') === 'Yes',
     watchedDate: pick(item, 'letterboxd:watchedDate') || null,
     review: htmlToText(description.replace(/<p><img[^>]*\/?><\/p>/, '')) || null,
+    // internal-only: matches data-viewing-id on the diary listing page (see
+    // fetchDiaryPosters) so a per-entry custom poster can be spliced in;
+    // stripped out before the snapshot is written.
+    viewingId: pick(item, 'guid').match(/-(\d+)$/)?.[1] ?? null,
   };
 }
 
@@ -213,7 +217,9 @@ function parseGridEntries(entries, cropFrom) {
 }
 
 async function fetchFavorites(page) {
-  await page.goto(`https://letterboxd.com/${LETTERBOXD_USER}/`, { waitUntil: 'networkidle' });
+  // networkidle is unreliable here (see fetchWatchlist) — domcontentloaded +
+  // polling for resolved posters is faster and more consistent.
+  await page.goto(`https://letterboxd.com/${LETTERBOXD_USER}/`, { waitUntil: 'domcontentloaded' });
   await page
     .waitForFunction(() => !document.querySelector('#favourites img[src*="empty-poster"]'), { timeout: 15000 })
     .catch(() => {}); // fall through with whatever resolved in time
@@ -251,6 +257,45 @@ async function fetchWatchlist(page) {
   return parseGridEntries(entries, '-0-125-0-187-crop');
 }
 
+// A diary entry can carry a per-log custom poster (an alternate official
+// poster, or a self-uploaded image) that the member chose, which differs
+// from the film's default poster embedded in the RSS feed. The diary
+// listing page renders each row keyed by data-viewing-id — the same numeric
+// id as the suffix on each RSS item's guid (see parseFilm's `viewingId`) —
+// so rows can be matched back to films even across rewatches. Posters lazy-
+// load on scroll, so a tall viewport is used instead of scrolling to force
+// every row to resolve at once.
+async function fetchDiaryPosters(page) {
+  const posters = new Map();
+  for (let pageNum = 1; pageNum <= 3; pageNum++) {
+    const url =
+      pageNum === 1
+        ? `https://letterboxd.com/${LETTERBOXD_USER}/films/diary/`
+        : `https://letterboxd.com/${LETTERBOXD_USER}/films/diary/page/${pageNum}/`;
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await page
+      .waitForFunction(() => !document.querySelector('.diary-entry-row .poster img[src*="empty-poster"]'), undefined, {
+        timeout: 20000,
+      })
+      .catch(() => {}); // fall through with whatever resolved in time
+
+    const rows = await page.$$eval('tr.diary-entry-row', (nodes) =>
+      nodes.map((n) => ({
+        viewingId: n.getAttribute('data-viewing-id'),
+        poster: n.querySelector('.poster.film-poster img')?.getAttribute('src') ?? null,
+      }))
+    );
+    if (rows.length === 0) break;
+    for (const { viewingId, poster } of rows) {
+      if (viewingId && poster && !poster.includes('empty-poster')) {
+        posters.set(viewingId, poster.replace(/-0-\d+-0-\d+-crop/, '-0-600-0-900-crop'));
+      }
+    }
+    if (rows.length < 50) break; // last page
+  }
+  return posters;
+}
+
 async function fetchFavoritesAndWatchlist() {
   const { chromium } = await import('playwright-core');
   const browser = await chromium.launch();
@@ -269,7 +314,19 @@ async function fetchFavoritesAndWatchlist() {
     const watchlist = await fetchWatchlist(await watchlistContext.newPage());
     await watchlistContext.close();
 
-    return { favorites, watchlist };
+    // Custom posters are additive/optional — if the diary listing fails to
+    // load (Cloudflare, timeout), fall back to the RSS default posters
+    // rather than failing the whole media fetch over it.
+    let diaryPosters = new Map();
+    try {
+      const diaryContext = await browser.newContext({ ...contextOptions, viewport: { width: 1280, height: 20000 } });
+      diaryPosters = await fetchDiaryPosters(await diaryContext.newPage());
+      await diaryContext.close();
+    } catch (err) {
+      console.warn(`diary posters: skipping (${err.message})`);
+    }
+
+    return { favorites, watchlist, diaryPosters };
   } finally {
     await browser.close();
   }
@@ -296,20 +353,26 @@ function writeSnapshot(file, data) {
 
 const fetchedAt = new Date().toISOString();
 
-const [read, currentlyReading, toRead, films, { favorites, watchlist }, repos, fetchedCalendar] = await Promise.all([
-  fetchShelf('read'),
-  fetchShelf('currently-reading'),
-  fetchShelf('to-read'),
-  fetchFilms(),
-  fetchFavoritesAndWatchlist(),
-  fetchGithubRepos(),
-  fetchContributionCalendar(),
-]);
+const [read, currentlyReading, toRead, rawFilms, { favorites, watchlist, diaryPosters }, repos, fetchedCalendar] =
+  await Promise.all([
+    fetchShelf('read'),
+    fetchShelf('currently-reading'),
+    fetchShelf('to-read'),
+    fetchFilms(),
+    fetchFavoritesAndWatchlist(),
+    fetchGithubRepos(),
+    fetchContributionCalendar(),
+  ]);
 
 const byRecency = (a, b) => (b.readAt ?? b.addedAt ?? '').localeCompare(a.readAt ?? a.addedAt ?? '');
 read.sort(byRecency);
 toRead.sort((a, b) => (b.addedAt ?? '').localeCompare(a.addedAt ?? ''));
 repos.sort((a, b) => (b.pushedAt ?? '').localeCompare(a.pushedAt ?? ''));
+
+const films = rawFilms.map(({ viewingId, ...film }) => {
+  const custom = diaryPosters.get(viewingId);
+  return custom ? { ...film, poster: custom } : film;
+});
 
 // fetchContributionCalendar returns null when no token is configured — keep
 // whatever was last committed rather than wiping it out.

@@ -70,6 +70,82 @@ for (const entry of entries) {
 }
 
 const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
+
+const MONTHS: Record<string, number> = {
+  jan: 0, january: 0,
+  feb: 1, february: 1,
+  mar: 2, march: 2,
+  apr: 3, april: 3,
+  may: 4,
+  jun: 5, june: 5,
+  jul: 6, july: 6,
+  aug: 7, august: 7,
+  sep: 8, sept: 8, september: 8,
+  oct: 9, october: 9,
+  nov: 10, november: 10,
+  dec: 11, december: 11,
+};
+
+// `date` is a free-form display string (single day, month-only, or a range —
+// see the dev form's "Date (e.g. 2024)" placeholder), not a structured date.
+// This pulls out a best-effort sortable timestamp for the timeline below.
+// Falls back to the first year/month found anywhere in the string when the
+// shape isn't one of the known ones.
+function parsePlaceDate(raw: string): number | null {
+  const s = raw.trim();
+
+  // "2024-present" / "2006-2024" / "2024" — a year or year range, use the start
+  let m = s.match(/^(\d{4})(?:\s*-\s*(?:\d{4}|present))?$/i);
+  if (m) return Date.UTC(Number(m[1]), 0, 1);
+
+  // "29Aug - 1 Sept 2025" — day+month stuck together on one side, full date on the other
+  m = s.match(/^(\d{1,2})\s*([A-Za-z]+)\s*-\s*\d{1,2}\s*[A-Za-z]+\s+(\d{4})$/);
+  if (m && MONTHS[m[2].toLowerCase()] !== undefined) {
+    return Date.UTC(Number(m[3]), MONTHS[m[2].toLowerCase()], Number(m[1]));
+  }
+
+  // "15-18 August 2025" / "22-24 March 2026" — day range, single month
+  m = s.match(/^(\d{1,2})\s*-\s*\d{1,2}\s+([A-Za-z]+)\s+(\d{4})$/);
+  if (m && MONTHS[m[2].toLowerCase()] !== undefined) {
+    return Date.UTC(Number(m[3]), MONTHS[m[2].toLowerCase()], Number(m[1]));
+  }
+
+  // "22 Sept 2022" / "18 Jan 2026" — single day
+  m = s.match(/^(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\.?\s+(\d{4})$/);
+  if (m && MONTHS[m[2].toLowerCase()] !== undefined) {
+    return Date.UTC(Number(m[3]), MONTHS[m[2].toLowerCase()], Number(m[1]));
+  }
+
+  // "Apr 2022" / "Sept 2023" — month + year, no day
+  m = s.match(/^([A-Za-z]+)\.?\s+(\d{4})$/);
+  if (m && MONTHS[m[1].toLowerCase()] !== undefined) {
+    return Date.UTC(Number(m[2]), MONTHS[m[1].toLowerCase()], 1);
+  }
+
+  // fallback: pull the first year (and month name, if any) found anywhere
+  const year = s.match(/\d{4}/)?.[0];
+  if (!year) return null;
+  const month = s.match(/[A-Za-z]+/)?.[0];
+  return Date.UTC(Number(year), month ? (MONTHS[month.toLowerCase()] ?? 0) : 0, 1);
+}
+
+const kindLabel = (kind: MapPlace['kind']) => (kind === 'want-to-go' ? 'want to go' : kind);
+
+const now = Date.now();
+
+// Chronological list of everything with a date — want-to-go entries lead
+// (they're the future plans), then the rest sorted most-recent-first.
+const timelinePlaces = mapPlaces
+  .filter((p): p is MapPlace & { date: string } => Boolean(p.date))
+  .map((p) => {
+    const sortDate = parsePlaceDate(p.date) ?? -Infinity;
+    return { ...p, sortDate, isFuture: sortDate > now };
+  })
+  .sort((a, b) => {
+    const aWant = a.kind === 'want-to-go' ? 0 : 1;
+    const bWant = b.kind === 'want-to-go' ? 0 : 1;
+    return aWant !== bWant ? aWant - bWant : b.sortDate - a.sortDate;
+  });
 ---
 <BaseLayout title="Places" description="An interactive map of places — events, travels, and homes.">
   <span class="mono-label">index / 06</span>
@@ -89,6 +165,34 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
   <div class="map-frame">
     <div id="map"></div>
   </div>
+
+  <section>
+    <h2 class="mono-label section-label">timeline / {String(timelinePlaces.length).padStart(2, '0')} dated</h2>
+    <ul class="post-list">
+      {timelinePlaces.map((place) => (
+        <li class={`kind-${place.kind}`}>
+          <div class="post-main">
+            <strong>{place.name}</strong>
+            {place.isFuture && <span class="future-badge mono-label">future</span>}
+            {import.meta.env.DEV && (
+              <button class="timeline-edit dev-btn mono-label" data-id={place.id} type="button">edit</button>
+            )}
+            <span class="mono-label post-date">
+              <span class={`dot dot-${place.kind}`} aria-hidden="true"></span>
+              {kindLabel(place.kind)} · {place.date}
+            </span>
+            {place.detail && <p class="post-desc">{place.detail}</p>}
+          </div>
+          {place.images[0] && (
+            <figure class="post-cover">
+              <img src={place.images[0]} alt={`Photo from ${place.name}`} loading="lazy" />
+            </figure>
+          )}
+        </li>
+      ))}
+    </ul>
+    {timelinePlaces.length === 0 && <p style="color: var(--color-text-dim);">No dated places yet.</p>}
+  </section>
 
   <script type="application/json" id="places-data" set:html={placesJson} />
   {noteRenders.map(({ id, Content }) => (
@@ -160,6 +264,7 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
   }).addTo(map);
 
   const kindMarkers: Record<PlaceKind, L.Marker[]> = { event: [], travel: [], lived: [], 'want-to-go': [] };
+  const markersById: Record<string, L.Marker> = {};
 
   for (const place of places) {
     const meta = [kindLabel(place.kind), place.date].filter(Boolean).join(' · ');
@@ -184,9 +289,9 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
       title: place.name,
       kind: place.kind,
     };
-    kindMarkers[place.kind].push(
-      L.marker(place.coords, options).bindPopup(html, { maxWidth: 280, maxHeight: 420 })
-    );
+    const marker = L.marker(place.coords, options).bindPopup(html, { maxWidth: 280, maxHeight: 420 });
+    kindMarkers[place.kind].push(marker);
+    markersById[place.id] = marker;
   }
   clusters.addLayers(Object.values(kindMarkers).flat());
 
@@ -302,8 +407,96 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
       });
       root.appendChild(edit);
     });
+
+    // timeline "edit" buttons: un-cluster the marker if needed, open its
+    // popup (which injects the .popup-edit button above), and jump straight
+    // into edit mode
+    document.querySelectorAll<HTMLButtonElement>('.timeline-edit').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const marker = markersById[btn.dataset.id ?? ''];
+        if (!marker) return;
+        document.getElementById('map')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        clusters.zoomToShowLayer(marker, () => {
+          marker.openPopup();
+          marker.getPopup()?.getElement()?.querySelector<HTMLButtonElement>('.popup-edit')?.click();
+        });
+      });
+    });
   }
 </script>
+
+<style>
+  .section-label {
+    color: var(--color-gold);
+    border-bottom: 1px solid var(--color-line);
+    padding-bottom: var(--space-1);
+    margin: var(--space-4) 0 var(--space-3);
+    font-size: 0.7rem;
+    font-weight: 400;
+  }
+
+  .post-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .post-list > li {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: 1.5rem 0 1.5rem 0.85rem;
+    border-bottom: 1px solid var(--color-line);
+    border-left: 3px solid transparent;
+  }
+  /* colored like the kind's dot on the map above */
+  .post-list > li.kind-event { border-left-color: var(--color-gold-bright); }
+  .post-list > li.kind-travel { border-left-color: var(--color-blue-bright); }
+  .post-list > li.kind-lived { border-left-color: var(--color-dot-lived); }
+  .post-list > li.kind-want-to-go { border-left-color: var(--color-dot-want-to-go); }
+
+  .post-main { flex: 1; min-width: 0; }
+  .post-main strong { font-family: var(--font-display); font-size: 1.2rem; }
+  .post-date { display: block; margin-top: 0.3rem; }
+  .post-date .dot { margin-right: 0.4rem; vertical-align: middle; }
+  .post-desc { color: var(--color-text-dim); margin-top: 0.4rem; }
+
+  .future-badge {
+    color: var(--color-gold-bright);
+    border: 1px dashed var(--color-gold);
+    padding: 0.1rem 0.4rem;
+    margin-left: 0.5rem;
+  }
+
+  .dev-btn {
+    background: none;
+    border: 1px dashed var(--color-line-bright);
+    color: var(--color-text-dim);
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+  }
+  .dev-btn:hover { color: var(--color-gold-bright); border-color: var(--color-gold); }
+  .timeline-edit { margin-left: 0.6rem; padding: 0.1rem 0.45rem; }
+
+  .post-cover {
+    flex-shrink: 0;
+    width: 200px;
+    margin: 0;
+  }
+  .post-cover img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+    border: 1px solid var(--color-line);
+  }
+
+  @media (max-width: 640px) {
+    .post-list > li { flex-direction: column; }
+    .post-cover { width: 100%; }
+    .post-cover img { height: 180px; }
+  }
+</style>
 
 <style is:global>
   .map-frame {
@@ -360,8 +553,8 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
   }
   .dot-event { background: var(--color-gold-bright); }
   .dot-travel { background: var(--color-blue-bright); }
-  .dot-lived { background: #6fbf8f; }
-  .dot-want-to-go { background: #a385d9; }
+  .dot-lived { background: var(--color-dot-lived); }
+  .dot-want-to-go { background: var(--color-dot-want-to-go); }
 
   .place-marker { background: none; border: none; }
   .place-marker .dot { width: 14px; height: 14px; }
@@ -384,8 +577,8 @@ const placesJson = JSON.stringify(mapPlaces).replace(/</g, '\\u003c');
   }
   .cluster-event { color: var(--color-gold-bright); }
   .cluster-travel { color: var(--color-blue-bright); }
-  .cluster-lived { color: #6fbf8f; }
-  .cluster-want-to-go { color: #a385d9; }
+  .cluster-lived { color: var(--color-dot-lived); }
+  .cluster-want-to-go { color: var(--color-dot-want-to-go); }
   .cluster-mixed { color: var(--color-text); }
 
   /* dark popups */

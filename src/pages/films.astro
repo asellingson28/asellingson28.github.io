@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import letterboxd from '../data/letterboxd.json';
+import Quote from '../components/Quote.astro';
 
 // snapshot written by `npm run fetch:media`; fetchedAt only changes when the diary does.
 // The RSS feed only carries the ~50 most recent diary entries.
@@ -28,7 +29,9 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
     Recent entries from my <a href={profileUrl} target="_blank" rel="noopener noreferrer">Letterboxd diary</a>.
   </p>
   <p class="mono-label updated-top">most recent update / {updated}</p>
-
+  <Quote cite="— Robert Grainier, Train Dreams">
+    The world needs a hermit in the woods as much as a preacher in a pulpit.
+  </Quote>
   {favorites.length > 0 && (
     <section class="favorites">
       <h2 class="mono-label section-label">four favorites</h2>
@@ -38,24 +41,6 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
             <a href={film.link} target="_blank" rel="noopener noreferrer">
               {film.poster && <img class="favorite-poster" src={film.poster} alt={`Poster for ${film.title}`} loading="lazy" referrerpolicy="no-referrer" />}
               <span class="favorite-title">{film.title}{film.year && <span class="film-year"> ({film.year})</span>}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )}
-
-  {watchlist.length > 0 && (
-    <section>
-      <h2 class="mono-label section-label">watchlist / top {String(watchlist.length).padStart(2, '0')} most popular</h2>
-      <ul class="film-grid">
-        {watchlist.map((film) => (
-          <li class="film">
-            <a href={film.link} target="_blank" rel="noopener noreferrer">
-              {film.poster && <img class="film-poster" src={film.poster} alt={`Poster for ${film.title}`} loading="lazy" referrerpolicy="no-referrer" />}
-            </a>
-            <a class="film-title" href={film.link} target="_blank" rel="noopener noreferrer">
-              {film.title}{film.year && <span class="film-year"> ({film.year})</span>}
             </a>
           </li>
         ))}
@@ -85,6 +70,24 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
       ))}
     </ul>
   </section>
+  
+  {watchlist.length > 0 && (
+    <section>
+      <h2 class="mono-label section-label">watchlist / top {String(watchlist.length).padStart(2, '0')} most popular</h2>
+      <ul class="film-grid">
+        {watchlist.map((film) => (
+          <li class="film">
+            <a href={film.link} target="_blank" rel="noopener noreferrer">
+              {film.poster && <img class="film-poster" src={film.poster} alt={`Poster for ${film.title}`} loading="lazy" referrerpolicy="no-referrer" />}
+            </a>
+            <a class="film-title" href={film.link} target="_blank" rel="noopener noreferrer">
+              {film.title}{film.year && <span class="film-year"> ({film.year})</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 
   <footer class="data-footer">
     <span class="mono-label">source / letterboxd rss</span>

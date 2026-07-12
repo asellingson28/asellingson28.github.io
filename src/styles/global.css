@@ -32,6 +32,10 @@
   --color-vine: #5f8f72;
   --color-chain: #8a6a4f;
 
+  /* -- color: places map dots (lived/want-to-go — event/travel reuse gold/blue) -- */
+  --color-dot-lived: #6fbf8f;
+  --color-dot-want-to-go: #a385d9;
+
   /* -- type -- */
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Inter', -apple-system, sans-serif;
@@ -77,6 +81,10 @@
   /* -- color: ornaments (vines, chains) -- */
   --color-vine: #7da377;
   --color-chain: #966040;
+
+  /* -- color: places map dots (lived/want-to-go — event/travel reuse gold/blue) -- */
+  --color-dot-lived: #5a9165;
+  --color-dot-want-to-go: #c15f92;
 }
 
 /* ===========================================================
@@ -109,6 +117,10 @@
   /* -- color: ornaments (vines, chains) -- */
   --color-vine: #3f8f5f;
   --color-chain: #8d5f4b;
+
+  /* -- color: places map dots (lived/want-to-go — event/travel reuse gold/blue) -- */
+  --color-dot-lived: #4f9e6f;
+  --color-dot-want-to-go: #9b72d1;
 }
 
 /* ===========================================================
@@ -142,6 +154,10 @@
   /* -- color: ornaments (vines, chains) -- */
   --color-vine: #7fa06a;
   --color-chain: #b08a5f;
+
+  /* -- color: places map dots (lived/want-to-go — event/travel reuse gold/blue) -- */
+  --color-dot-lived: #5f9e78;
+  --color-dot-want-to-go: #8f6fb0;
 }
 
 * {

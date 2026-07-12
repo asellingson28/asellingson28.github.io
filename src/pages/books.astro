@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import goodreads from '../data/goodreads.json';
+import Quote from '../components/Quote.astro';
 
 // snapshot written by `npm run fetch:media`; fetchedAt only changes when the shelf does
 const { currentlyReading, toRead, read } = goodreads;
@@ -33,6 +34,9 @@ const fmtDate = (iso: string | null) =>
   <p class="lede">
     Pulled from my <a href={profileUrl} target="_blank" rel="noopener noreferrer">Goodreads shelves</a>.
   </p>
+  <Quote cite="— Albert Camus">
+    You will never be able to experience everything. So, please, do poetical justice to your soul and simply experience yourself.
+  </Quote>
 
   {currentlyReading.length > 0 && (
     <section>

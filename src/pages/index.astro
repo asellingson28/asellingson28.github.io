@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Quote from "../components/Quote.astro";
+import Quote from '../components/Quote.astro';
 import { Image } from "astro:assets";
 import me from "../content/imgs/me.JPG";
 ---
@@ -8,6 +8,20 @@ import me from "../content/imgs/me.JPG";
 <BaseLayout title="Home">
   <span class="mono-label">index / 00</span>
   <h1>Hi, I'm Arjan.</h1>
+
+  <figure class="me-figure">
+    <Image
+      src={me}
+      alt="Standing on a rock outcrop looking out over Lake Superior in autumn"
+      widths={[300, 600, 900]}
+      sizes="(max-width: 700px) 100vw, 380px"
+      aspectRatio="16:9"
+      fit="cover"
+      loading="eager"
+      class="me-img"
+    />
+  </figure>
+
   <p style="color: var(--color-text-dim); max-width: 60ch;">
     By trade, I'm a software engineer. By necessity, I am an innovator and
     designer. By passion, I am a cinephile and art aesthete.
@@ -31,24 +45,13 @@ import me from "../content/imgs/me.JPG";
   <Quote cite="— Friedrich Nietzsche">
     Never trust a thought that occurs to you indoors.
   </Quote>
-
-  <figure class="me-figure">
-    <Image
-      src={me}
-      alt="Standing on a rock outcrop looking out over Lake Superior in autumn"
-      widths={[400, 800, 1200, 1600]}
-      sizes="(max-width: 700px) 100vw, 1100px"
-      aspectRatio="16:9"
-      fit="cover"
-      loading="eager"
-      class="me-img"
-    />
-  </figure>
 </BaseLayout>
 
 <style>
   .me-figure {
-    margin: var(--space-4) 0 0;
+    float: right;
+    width: clamp(240px, 34vw, 380px);
+    margin: 0 0 var(--space-3) var(--space-4);
     border: 1px solid var(--color-line);
     padding: 6px;
   }
@@ -56,5 +59,13 @@ import me from "../content/imgs/me.JPG";
     display: block;
     width: 100%;
     height: auto;
+  }
+
+  @media (max-width: 700px) {
+    .me-figure {
+      float: none;
+      width: 100%;
+      margin: 0 0 var(--space-4);
+    }
   }
 </style>
