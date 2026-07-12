@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-11T16:25:05.139Z",
+  "fetchedAt": "2026-07-12T01:18:49.272Z",
   "username": "aselling",
   "films": [
     {
@@ -11,7 +11,7 @@
       "liked": true,
       "rewatch": false,
       "watchedDate": "2026-07-10",
-      "review": "incredible. laughed harder than I have in a long time. didnt even know what was happening half the time. ill say it again, incredible.\n\nstrikes and gutters"
+      "review": "incredible. laughed harder than I have in a long time. didnt even know what was happening half the time. ill say it again, incredible.\n\nstrikes and gutters\n\nedit: whoever said Scott Pilgrim for 40 year old white men was spot on"
     },
     {
       "title": "The Innocents",
@@ -102,17 +102,6 @@
       "review": "felt like an episode of Seinfeld. \n\nchoose life"
     },
     {
-      "title": "Oppenheimer",
-      "year": 2023,
-      "link": "https://letterboxd.com/aselling/film/oppenheimer-2023/2/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/7/8/4/3/2/8/784328-oppenheimer-0-600-0-900-crop.jpg?v=e3c6e7a32c",
-      "rating": null,
-      "liked": true,
-      "rewatch": true,
-      "watchedDate": "2025-06-19",
-      "review": "Watched on Thursday June 19, 2025."
-    },
-    {
       "title": "Hostiles",
       "year": 2017,
       "link": "https://letterboxd.com/aselling/film/hostiles-2017/",
@@ -157,17 +146,6 @@
       "review": "incredible film. never having children, never going to therapy."
     },
     {
-      "title": "Scott Pilgrim vs. the World",
-      "year": 2010,
-      "link": "https://letterboxd.com/aselling/film/scott-pilgrim-vs-the-world/",
-      "poster": "https://a.ltrbxd.com/resized/sm/upload/vs/75/02/fx/2B5zjs5E3xerqAyowpw3QcOCyLq-0-600-0-900-crop.jpg?v=3aef2095df",
-      "rating": null,
-      "liked": true,
-      "rewatch": false,
-      "watchedDate": "2025-05-09",
-      "review": "ABSOLUTE CINEMA"
-    },
-    {
       "title": "GoodFellas",
       "year": 1990,
       "link": "https://letterboxd.com/aselling/film/goodfellas/",
@@ -177,17 +155,6 @@
       "rewatch": false,
       "watchedDate": "2026-06-22",
       "review": "lowkenuinely I got really bored even though ray liotta is so fine."
-    },
-    {
-      "title": "You're So Hot with Chris Mintz-Plasse and Dave Franco",
-      "year": 2011,
-      "link": "https://letterboxd.com/aselling/film/youre-so-hot-with-chris-mintz-plasse-and-dave-franco/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/5/7/7/9/8/4/577984-you-re-so-hot-with-chris-mintz-plasse-and-dave-franco-0-600-0-900-crop.jpg?v=fe75d3755b",
-      "rating": null,
-      "liked": false,
-      "rewatch": false,
-      "watchedDate": null,
-      "review": "s@ving 4 l8r"
     },
     {
       "title": "Happiness",
@@ -509,17 +476,6 @@
       "review": "what'd you do over winter break?oh you know, covered the Statue Of Liberty with silly string, made it go mobile, and crashed it into an art museum"
     },
     {
-      "title": "Night at the Museum",
-      "year": 2006,
-      "link": "https://letterboxd.com/aselling/film/night-at-the-museum/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/5/0/9/4/1/50941-night-at-the-museum-0-600-0-900-crop.jpg?v=8e664558ef",
-      "rating": null,
-      "liked": true,
-      "rewatch": false,
-      "watchedDate": null,
-      "review": "absolute fav"
-    },
-    {
       "title": "Asteroid City",
       "year": 2023,
       "link": "https://letterboxd.com/aselling/film/asteroid-city/",
@@ -551,6 +507,54 @@
       "rewatch": false,
       "watchedDate": "2026-06-01",
       "review": "genuine worst fear"
+    },
+    {
+      "title": "Oppenheimer",
+      "year": 2023,
+      "link": "https://letterboxd.com/aselling/film/oppenheimer-2023/2/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/7/8/4/3/2/8/784328-oppenheimer-0-600-0-900-crop.jpg?v=e3c6e7a32c",
+      "rating": null,
+      "liked": true,
+      "rewatch": true,
+      "watchedDate": "2025-06-19",
+      "review": "Watched on Thursday June 19, 2025."
+    },
+    {
+      "title": "Scott Pilgrim vs. the World",
+      "year": 2010,
+      "link": "https://letterboxd.com/aselling/film/scott-pilgrim-vs-the-world/",
+      "poster": "https://a.ltrbxd.com/resized/sm/upload/vs/75/02/fx/2B5zjs5E3xerqAyowpw3QcOCyLq-0-600-0-900-crop.jpg?v=3aef2095df",
+      "rating": null,
+      "liked": true,
+      "rewatch": false,
+      "watchedDate": "2025-05-09",
+      "review": "ABSOLUTE CINEMA"
+    }
+  ],
+  "favorites": [
+    {
+      "title": "(500) Days of Summer",
+      "year": 2009,
+      "link": "https://letterboxd.com/film/500-days-of-summer/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/3/9/3/5/0/39350--500-days-of-summer-0-600-0-900-crop.jpg?v=05995ae0b3"
+    },
+    {
+      "title": "Portrait of a Lady on Fire",
+      "year": 2019,
+      "link": "https://letterboxd.com/film/portrait-of-a-lady-on-fire/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/4/6/0/8/3/0/460830-portrait-of-a-lady-on-fire-0-600-0-900-crop.jpg?v=79b0f67aa9"
+    },
+    {
+      "title": "Ferris Bueller's Day Off",
+      "year": 1986,
+      "link": "https://letterboxd.com/film/ferris-buellers-day-off/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/4/7/2/1/9/47219-ferris-bueller-s-day-off-0-600-0-900-crop.jpg?v=5c27745153"
+    },
+    {
+      "title": "Train Dreams",
+      "year": 2025,
+      "link": "https://letterboxd.com/film/train-dreams/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/1/1/2/5/3/8/3/1125383-train-dreams-0-600-0-900-crop.jpg?v=55740bb5b4"
     }
   ]
 }

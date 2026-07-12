@@ -108,10 +108,47 @@ function parseFilm(item) {
 
 async function fetchFilms() {
   const xml = await fetchXml(`https://letterboxd.com/${LETTERBOXD_USER}/rss/`);
-  // diary entries only — the feed also carries list updates (guid letterboxd-list-…)
-  return items(xml)
-    .filter((it) => /letterboxd-(watch|review)-/.test(pick(it, 'guid')))
+  // Diary entries only. The feed also carries list updates (guid letterboxd-list-…)
+  // and "watched/reviewed" activity that was never logged to the diary — those
+  // share the watch/review guid prefixes but have no letterboxd:watchedDate, so
+  // filter on that instead of guid alone. Feed order is activity order (when an
+  // entry was logged/edited), not diary order, so re-sort by watchedDate.
+  const films = items(xml)
+    .filter((it) => /letterboxd-(watch|review)-/.test(pick(it, 'guid')) && pick(it, 'letterboxd:watchedDate'))
     .map(parseFilm);
+  films.sort((a, b) => b.watchedDate.localeCompare(a.watchedDate));
+  return films;
+}
+
+// --- Letterboxd favorites (scraped — not available via RSS) ------------
+
+async function fetchHtml(url) {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (asellingson28.github.io media snapshot; arjan.ellingson@gmail.com)' },
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
+  return res.text();
+}
+
+async function fetchFavorites() {
+  const html = await fetchHtml(`https://letterboxd.com/${LETTERBOXD_USER}/`);
+  const section = html.match(/<section id="favourites"[^>]*>([\s\S]*?)<\/section>/)?.[1] ?? '';
+  const entries = [...section.matchAll(/<li class="griditem">([\s\S]*?)<\/li>/g)].map((m) => {
+    const block = m[1];
+    const fullName = decode(block.match(/data-item-full-display-name="([^"]+)"/)?.[1] ?? '');
+    const path = block.match(/data-item-link="([^"]+)"/)?.[1] ?? '';
+    const [, title, year] = fullName.match(/^(.*)\s\((\d{4})\)$/) ?? [null, fullName, null];
+    return { title, year: year ? Number(year) : null, link: `https://letterboxd.com${path}` };
+  });
+
+  // poster URLs aren't in the profile page (lazy-loaded); pull each from its film page
+  const favorites = [];
+  for (const entry of entries) {
+    const filmHtml = await fetchHtml(entry.link);
+    const poster = filmHtml.match(/"image":"([^"]+)"/)?.[1] ?? null;
+    favorites.push({ ...entry, poster });
+  }
+  return favorites;
 }
 
 // --- write, preserving fetchedAt when content is unchanged -------------
@@ -135,15 +172,18 @@ function writeSnapshot(file, data) {
 
 const fetchedAt = new Date().toISOString();
 
-const [read, currentlyReading, films] = await Promise.all([
+const [read, currentlyReading, films, favorites] = await Promise.all([
   fetchShelf('read'),
   fetchShelf('currently-reading'),
   fetchFilms(),
+  fetchFavorites(),
 ]);
 
 const byRecency = (a, b) => (b.readAt ?? b.addedAt ?? '').localeCompare(a.readAt ?? a.addedAt ?? '');
 read.sort(byRecency);
 
 writeSnapshot('goodreads.json', { fetchedAt, userId: GOODREADS_USER_ID, currentlyReading, read });
-writeSnapshot('letterboxd.json', { fetchedAt, username: LETTERBOXD_USER, films });
-console.log(`${read.length} read, ${currentlyReading.length} currently reading, ${films.length} films`);
+writeSnapshot('letterboxd.json', { fetchedAt, username: LETTERBOXD_USER, films, favorites });
+console.log(
+  `${read.length} read, ${currentlyReading.length} currently reading, ${films.length} films, ${favorites.length} favorites`
+);

@@ -4,7 +4,7 @@ import letterboxd from '../data/letterboxd.json';
 
 // snapshot written by `npm run fetch:media`; fetchedAt only changes when the diary does.
 // The RSS feed only carries the ~50 most recent diary entries.
-const { films } = letterboxd;
+const { films, favorites } = letterboxd;
 const profileUrl = `https://letterboxd.com/${letterboxd.username}/`;
 const updated = letterboxd.fetchedAt.slice(0, 16).replace('T', ' · ') + ' utc';
 
@@ -27,6 +27,22 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
   <p class="lede">
     Recent entries from my <a href={profileUrl} target="_blank" rel="noopener noreferrer">Letterboxd diary</a>.
   </p>
+
+  {favorites.length > 0 && (
+    <section class="favorites">
+      <h2 class="mono-label section-label">four favorites</h2>
+      <ul class="favorites-grid">
+        {favorites.map((film) => (
+          <li class="favorite">
+            <a href={film.link} target="_blank" rel="noopener noreferrer">
+              {film.poster && <img class="favorite-poster" src={film.poster} alt={`Poster for ${film.title}`} loading="lazy" referrerpolicy="no-referrer" />}
+              <span class="favorite-title">{film.title}{film.year && <span class="film-year"> ({film.year})</span>}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 
   <section>
     <h2 class="mono-label section-label">diary / last {String(films.length).padStart(2, '0')}</h2>
@@ -72,6 +88,35 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
     font-size: 0.7rem;
     font-weight: 400;
   }
+
+  .favorites-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(90px, 140px));
+    gap: var(--space-2);
+  }
+  .favorite a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .favorite-poster {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    display: block;
+    border: 1px solid var(--color-line);
+  }
+  .favorite a:hover .favorite-poster { border-color: var(--color-gold); }
+  .favorite-title {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    line-height: 1.3;
+    color: var(--color-text);
+  }
+  .favorite a:hover .favorite-title { color: var(--color-gold-bright); }
 
   .film-grid {
     list-style: none;

@@ -259,6 +259,9 @@ function mailForPost(post, subscribers) {
     list: {
       unsubscribe,
     },
+    headers: {
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   };
 }
 
@@ -295,7 +298,26 @@ if (subscribers.length === 0) {
 const transporter = createTransporter();
 await transporter.verify();
 
+let anyRejected = false;
+
 for (const post of posts) {
-  await transporter.sendMail(mailForPost(post, subscribers));
-  console.log(`Sent email for ${post.slug} to ${subscribers.length} subscriber(s).`);
+  const info = await transporter.sendMail(mailForPost(post, subscribers));
+  const rejected = info.rejected?.filter(Boolean) ?? [];
+  const accepted = info.accepted?.filter(Boolean) ?? [];
+
+  console.log(
+    `Sent email for ${post.slug}: ${accepted.length} accepted, ${rejected.length} rejected. SMTP response: ${info.response}`
+  );
+
+  if (rejected.length > 0) {
+    anyRejected = true;
+    console.error(`SMTP server rejected these address(es) for ${post.slug}: ${rejected.join(', ')}`);
+  }
+}
+
+if (anyRejected) {
+  console.error(
+    'One or more subscriber addresses were rejected by the SMTP server. The job succeeded for at least one recipient, so this did not fail the workflow on its own — check the addresses above.'
+  );
+  process.exit(1);
 }
