@@ -168,6 +168,14 @@ function splitRecipients(value) {
     .filter(Boolean);
 }
 
+function maskEmail(value) {
+  const address = addressFromFormatted(value);
+  const [user, domain] = address.split('@');
+  if (!domain) return `${address.slice(0, 2)}***`;
+  const maskedUser = user.length <= 2 ? `${user[0] ?? ''}*` : `${user.slice(0, 2)}${'*'.repeat(user.length - 2)}`;
+  return `${maskedUser}@${domain}`;
+}
+
 function stripTags(value) {
   return value.replace(/<[^>]*>/g, '').trim();
 }
@@ -285,6 +293,10 @@ for (const post of posts) {
   console.log(`- ${post.title} (${post.file})`);
 }
 
+console.log(
+  `Subscribers (${subscribers.length}): ${subscribers.length ? subscribers.map(maskEmail).join(', ') : '(none)'}`
+);
+
 if (dryRun) {
   console.log(`Dry run: would email ${subscribers.length} subscriber(s).`);
   process.exit(0);
@@ -306,12 +318,12 @@ for (const post of posts) {
   const accepted = info.accepted?.filter(Boolean) ?? [];
 
   console.log(
-    `Sent email for ${post.slug}: ${accepted.length} accepted, ${rejected.length} rejected. SMTP response: ${info.response}`
+    `Sent email for ${post.slug}: ${accepted.length} accepted (${accepted.map(maskEmail).join(', ')}), ${rejected.length} rejected. SMTP response: ${info.response}`
   );
 
   if (rejected.length > 0) {
     anyRejected = true;
-    console.error(`SMTP server rejected these address(es) for ${post.slug}: ${rejected.join(', ')}`);
+    console.error(`SMTP server rejected these address(es) for ${post.slug}: ${rejected.map(maskEmail).join(', ')}`);
   }
 }
 
