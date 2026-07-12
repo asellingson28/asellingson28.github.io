@@ -1,7 +1,15 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import nodemailer from 'nodemailer';
+import {
+  EMAIL_THEME,
+  escapeHtml,
+  stripTags,
+  createTransporter,
+  maskEmail,
+  addressFromFormatted,
+  renderEmailCard,
+} from './lib/mail-theme.mjs';
 
 const BLOG_DIR = 'src/content/blog';
 const DEFAULT_SITE_URL = 'https://asellingson28.github.io';
@@ -168,36 +176,6 @@ function splitRecipients(value) {
     .filter(Boolean);
 }
 
-function maskEmail(value) {
-  const address = addressFromFormatted(value);
-  const [user, domain] = address.split('@');
-  if (!domain) return `${address.slice(0, 2)}***`;
-  const maskedUser = user.length <= 2 ? `${user[0] ?? ''}*` : `${user.slice(0, 2)}${'*'.repeat(user.length - 2)}`;
-  return `${maskedUser}@${domain}`;
-}
-
-function stripTags(value) {
-  return value.replace(/<[^>]*>/g, '').trim();
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (char) => {
-    const entities = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    };
-    return entities[char];
-  });
-}
-
-function addressFromFormatted(value) {
-  const match = String(value ?? '').match(/<([^>]+)>/);
-  return (match?.[1] ?? value ?? '').trim();
-}
-
 function unsubscribeUrl(from) {
   return (
     process.env.MAIL_UNSUBSCRIBE ||
@@ -206,33 +184,40 @@ function unsubscribeUrl(from) {
   );
 }
 
-function createTransporter() {
-  const required = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM'];
-  const missing = required.filter((name) => !process.env[name]);
-  if (missing.length > 0) {
-    throw new Error(`Missing required mail env var(s): ${missing.join(', ')}`);
-  }
+// Self-serve signups (via the Cloudflare Worker subscribe form) are additive
+// to the manually-managed MAIL_SUBSCRIBERS secret. If the Worker is
+// unreachable or unconfigured, fall back to just the manual list rather than
+// failing the whole notify job over a non-essential dependency.
+async function fetchWorkerSubscribers() {
+  const workerUrl = process.env.WORKER_URL;
+  const syncSecret = process.env.SYNC_SECRET;
+  if (!workerUrl || !syncSecret) return [];
 
-  const host = process.env.SMTP_HOST.trim();
-  if (!/^[a-z0-9.-]+$/i.test(host)) {
-    throw new Error(
-      'SMTP_HOST should be only a hostname like "smtp.gmail.com". Do not include "SMTP_HOST=", quotes, spaces, slashes, or backslashes in the GitHub secret value.'
-    );
+  try {
+    const res = await fetch(new URL('/subscribers', workerUrl), {
+      headers: { Authorization: `Bearer ${syncSecret}` },
+    });
+    if (!res.ok) {
+      console.error(`Worker /subscribers returned ${res.status}; continuing with MAIL_SUBSCRIBERS only.`);
+      return [];
+    }
+    const data = await res.json();
+    return Array.isArray(data.subscribers) ? data.subscribers : [];
+  } catch (err) {
+    console.error(`Could not reach Worker /subscribers (${err.message}); continuing with MAIL_SUBSCRIBERS only.`);
+    return [];
   }
+}
 
-  const port = Number(process.env.SMTP_PORT ?? 587);
-  if (!Number.isInteger(port) || port <= 0) {
-    throw new Error('SMTP_PORT should be a number like 587 or 465.');
-  }
-
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
+function renderPostEmailHtml(post, preview, unsubscribe) {
+  return renderEmailCard({
+    eyebrow: '03 / writing · new post',
+    title: post.title,
+    bodyHtml: preview
+      ? `<p style="margin:0;font-family:${EMAIL_THEME.fontBody};font-size:15px;line-height:1.6;color:${EMAIL_THEME.textDim};">${escapeHtml(stripTags(preview))}</p>`
+      : '',
+    cta: { href: post.url, label: 'Read the post →' },
+    footerHtml: `sent to subscribers of asellingson28.github.io &middot; <a href="${escapeHtml(unsubscribe)}" style="color:${EMAIL_THEME.textDim};">unsubscribe</a>`,
   });
 }
 
@@ -258,12 +243,7 @@ function mailForPost(post, subscribers) {
       '',
       `Unsubscribe: ${unsubscribe}`,
     ].join('\n'),
-    html: [
-      `<h1>${escapeHtml(post.title)}</h1>`,
-      preview ? `<p>${escapeHtml(stripTags(preview))}</p>` : '',
-      `<p><a href="${escapeHtml(post.url)}">Read the post</a></p>`,
-      `<p style="font-size:12px;color:#666">To unsubscribe, use <a href="${escapeHtml(unsubscribe)}">this link</a>.</p>`,
-    ].join('\n'),
+    html: renderPostEmailHtml(post, preview, unsubscribe),
     list: {
       unsubscribe,
     },
@@ -281,7 +261,6 @@ const changes =
       : changedBlogFiles(since, head);
 
 const posts = changes.map(postFromChange).filter(Boolean);
-const subscribers = splitRecipients(process.env.MAIL_SUBSCRIBERS);
 
 if (posts.length === 0) {
   console.log('No newly published blog posts to email.');
@@ -293,8 +272,13 @@ for (const post of posts) {
   console.log(`- ${post.title} (${post.file})`);
 }
 
+const manualSubscribers = splitRecipients(process.env.MAIL_SUBSCRIBERS);
+const workerSubscribers = await fetchWorkerSubscribers();
+const subscribers = [...new Set([...manualSubscribers, ...workerSubscribers])];
+
 console.log(
-  `Subscribers (${subscribers.length}): ${subscribers.length ? subscribers.map(maskEmail).join(', ') : '(none)'}`
+  `Subscribers (${subscribers.length}): ${subscribers.length ? subscribers.map(maskEmail).join(', ') : '(none)'} ` +
+    `[${manualSubscribers.length} manual via MAIL_SUBSCRIBERS, ${workerSubscribers.length} self-serve via Worker]`
 );
 
 if (dryRun) {
@@ -303,7 +287,7 @@ if (dryRun) {
 }
 
 if (subscribers.length === 0) {
-  console.log('MAIL_SUBSCRIBERS is empty, so no email will be sent.');
+  console.log('No subscribers (MAIL_SUBSCRIBERS and the Worker subscriber list are both empty), so no email will be sent.');
   process.exit(0);
 }
 

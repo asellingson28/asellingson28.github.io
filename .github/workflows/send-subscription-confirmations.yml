@@ -1,0 +1,43 @@
+name: Send subscription confirmations
+
+# Polls the blog-subscribe Cloudflare Worker (see worker/) for pending
+# double-opt-in signups and emails a confirm link for each, using the same
+# SMTP credentials as the "new post" notifications.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (log pending confirmations, but do not send)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: send-subscription-confirmations
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Send pending confirmation emails
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          MAIL_REPLY_TO: ${{ secrets.MAIL_REPLY_TO }}
+          WORKER_URL: ${{ vars.WORKER_URL }}
+          SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
+        run: npm run notify:confirm -- ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}

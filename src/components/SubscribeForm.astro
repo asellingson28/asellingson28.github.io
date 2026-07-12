@@ -1,0 +1,139 @@
+---
+// Public "get new posts by email" signup, backed by the Cloudflare Worker in
+// worker/ (see worker/README.md for deploy steps). Unlike the dev-only
+// content editors elsewhere in this repo, this ships to production.
+// Double opt-in: submitting here only queues a confirmation email — the
+// address isn't added to the send list until that link is clicked.
+//
+const WORKER_URL = 'https://aselling-blog-subscribe.aselling.workers.dev';
+---
+
+<form class="subscribe-form" id="subscribe-form" novalidate>
+  <span class="mono-label subscribe-label">get new posts by email</span>
+  <div class="subscribe-row">
+    <input
+      class="subscribe-email"
+      id="subscribe-email"
+      name="email"
+      type="email"
+      placeholder="you@example.com"
+      autocomplete="email"
+      required
+    />
+    <!-- honeypot: invisible to real visitors, left empty by them; bots that
+         blindly fill every field trip this and get a silent no-op -->
+    <input
+      class="subscribe-hp"
+      name="website"
+      type="text"
+      tabindex="-1"
+      autocomplete="off"
+      aria-hidden="true"
+    />
+    <button type="submit" id="subscribe-submit">subscribe</button>
+  </div>
+  <p class="subscribe-status mono-label" id="subscribe-status" role="status" aria-live="polite"></p>
+</form>
+
+<script define:vars={{ WORKER_URL }}>
+  const form = document.getElementById('subscribe-form');
+  const emailInput = document.getElementById('subscribe-email');
+  const submitBtn = document.getElementById('subscribe-submit');
+  const status = document.getElementById('subscribe-status');
+
+  form?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    if (!emailInput.checkValidity()) {
+      status.textContent = 'enter a valid email address';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    status.textContent = 'sending…';
+
+    try {
+      const res = await fetch(new URL('/subscribe', WORKER_URL), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailInput.value.trim(),
+          website: form.website.value,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`status ${res.status}`);
+
+      status.textContent = 'check your email to confirm';
+      form.reset();
+    } catch {
+      status.textContent = 'something went wrong — try again in a moment';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .subscribe-form {
+    margin: var(--space-3) 0;
+    padding: var(--space-3);
+    border: 1px solid var(--color-line);
+    background: var(--color-bg-elevated);
+  }
+
+  .subscribe-label {
+    display: block;
+    margin-bottom: 0.6rem;
+  }
+
+  .subscribe-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .subscribe-email {
+    flex: 1;
+    min-width: 200px;
+    background: var(--color-bg-inset);
+    border: 1px solid var(--color-line-bright);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.65rem;
+  }
+  .subscribe-email:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 1px;
+  }
+
+  /* honeypot: off-screen rather than display:none, which unsophisticated
+     bots often specifically check for and skip filling */
+  .subscribe-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .subscribe-form button[type='submit'] {
+    background: var(--color-gold);
+    border: none;
+    color: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.5rem 0.9rem;
+    cursor: pointer;
+  }
+  .subscribe-form button[type='submit']:hover:not(:disabled) { background: var(--color-gold-bright); }
+  .subscribe-form button[type='submit']:disabled { opacity: 0.6; cursor: default; }
+
+  .subscribe-status {
+    min-height: 1.2em;
+    margin: 0.6rem 0 0;
+    color: var(--color-text-dim);
+  }
+</style>
