@@ -73,6 +73,8 @@ jobs:
           MAIL_REPLY_TO: ${{ secrets.MAIL_REPLY_TO }}
           MAIL_SUBSCRIBERS: ${{ secrets.MAIL_SUBSCRIBERS }}
           MAIL_UNSUBSCRIBE: ${{ secrets.MAIL_UNSUBSCRIBE }}
+          WORKER_URL: ${{ vars.WORKER_URL }}
+          SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
           SITE_URL: https://asellingson28.github.io
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
