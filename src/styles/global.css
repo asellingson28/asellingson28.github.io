@@ -28,8 +28,9 @@
   --color-text-dim: #8a8f98;
   --color-text-faint: #565c68;
 
-  /* -- color: ornament (vines) -- */
+  /* -- color: ornaments (vines, chains) -- */
   --color-vine: #5f8f72;
+  --color-chain: #8a6a4f;
 
   /* -- type -- */
   --font-display: 'Fraunces', Georgia, serif;
@@ -73,8 +74,9 @@
   --color-text-dim: #85718e;
   --color-text-faint: #a893ae;
 
-  /* -- color: ornament (vines) -- */
+  /* -- color: ornaments (vines, chains) -- */
   --color-vine: #7da377;
+  --color-chain: #966040;
 }
 
 /* ===========================================================
@@ -104,8 +106,9 @@
   --color-text-dim: #a18b91;
   --color-text-faint: #6d5661;
 
-  /* -- color: ornament (vines) -- */
+  /* -- color: ornaments (vines, chains) -- */
   --color-vine: #3f8f5f;
+  --color-chain: #8d5f4b;
 }
 
 * {

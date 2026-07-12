@@ -1,5 +1,5 @@
 ---
-// Experimental ornament: a rustic vine running down the right edge of the
+// Experimental ornament: a rustic vine running down the left edge of the
 // viewport — wandering stem, offshoot branches, tendrils, leaves and berries.
 // Purely decorative — delete this file and its one usage in BaseLayout.astro
 // to remove. Color comes from the per-theme --color-vine token.
@@ -43,12 +43,14 @@
   .vines {
     position: fixed;
     top: 0;
-    right: 2px;
+    left: 2px;
     width: 32px;
     height: 100vh;
     z-index: 40;
     pointer-events: none;
     opacity: 0.55;
+    /* tile was drawn for the right edge; mirror it so it hugs the left */
+    transform: scaleX(-1);
   }
 
   .stem {

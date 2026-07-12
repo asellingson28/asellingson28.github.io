@@ -1,6 +1,7 @@
 ---
 import Nav from '../components/Nav.astro';
 import Vines from '../components/Vines.astro';
+import Chains from '../components/Chains.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -31,6 +32,7 @@ const { title, description = 'Personal site — work, writing, and notes.' } = A
   </head>
   <body>
     <Vines />
+    <Chains />
     <Nav />
     <main class="wrap-wide" style="padding-top: var(--space-4); padding-bottom: var(--space-5); min-height: 60vh;">
       <slot />
