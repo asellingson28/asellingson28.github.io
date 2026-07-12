@@ -1,10 +1,10 @@
 {
-  "fetchedAt": "2026-07-12T05:25:01.155Z",
+  "fetchedAt": "2026-07-12T18:00:00.000Z",
   "username": "asellingson28",
   "repos": [
     {
       "name": "asellingson28.github.io",
-      "description": "My website containing a portfolio of a variety of projects",
+      "description": "My website containing a portfolio of a variety of projects. E2E tested with Playwright.",
       "link": "https://github.com/asellingson28/asellingson28.github.io",
       "homepage": "http://asellingson28.github.io/",
       "language": "Astro",
