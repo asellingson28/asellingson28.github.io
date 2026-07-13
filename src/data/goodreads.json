@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-12T05:01:53.401Z",
+  "fetchedAt": "2026-07-13T12:17:45.407Z",
   "userId": "192886223",
   "currentlyReading": [
     {
@@ -24,6 +24,26 @@
     }
   ],
   "toRead": [
+    {
+      "title": "Babylonia",
+      "author": "Costanza Casati",
+      "link": "https://www.goodreads.com/book/show/210204151",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1718809706l/210204151._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-07-12",
+      "review": null
+    },
+    {
+      "title": "The Power of Moving On: How To Let Go and Live The Life You Want (The Power of Letting Go Series)",
+      "author": "John Purkiss",
+      "link": "https://www.goodreads.com/book/show/228147258",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1746167443l/228147258._SY475_.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-07-12",
+      "review": null
+    },
     {
       "title": "The Rebel",
       "author": "Albert Camus",
