@@ -383,8 +383,29 @@ if (!contributions) {
   } catch {}
 }
 
+// The favorites/watchlist poster resolution races Letterboxd's Cloudflare JS
+// challenge (see fetchFavorites/fetchWatchlist) — it's more prone to timing
+// out from a CI runner's datacenter IP than a local run, which would
+// otherwise null out a previously-resolved poster. Keep the last known
+// poster (matched by link) rather than let a slow challenge erase it.
+let previousLetterboxd = null;
+try {
+  previousLetterboxd = JSON.parse(readFileSync(dataDir + 'letterboxd.json', 'utf8'));
+} catch {}
+
+function backfillPosters(entries, previousEntries) {
+  const previousByLink = new Map((previousEntries ?? []).map((e) => [e.link, e.poster]));
+  return entries.map((e) => (e.poster ? e : { ...e, poster: previousByLink.get(e.link) ?? null }));
+}
+
 writeSnapshot('goodreads.json', { fetchedAt, userId: GOODREADS_USER_ID, currentlyReading, toRead, read });
-writeSnapshot('letterboxd.json', { fetchedAt, username: LETTERBOXD_USER, films, favorites, watchlist });
+writeSnapshot('letterboxd.json', {
+  fetchedAt,
+  username: LETTERBOXD_USER,
+  films,
+  favorites: backfillPosters(favorites, previousLetterboxd?.favorites),
+  watchlist: backfillPosters(watchlist, previousLetterboxd?.watchlist),
+});
 writeSnapshot('github.json', { fetchedAt, username: GITHUB_USER, repos, contributions });
 console.log(
   `${read.length} read, ${currentlyReading.length} currently reading, ${toRead.length} to read, ${films.length} films, ${favorites.length} favorites, ${watchlist.length} watchlist, ${repos.length} repos`
