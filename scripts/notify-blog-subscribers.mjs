@@ -2,22 +2,26 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  EMAIL_THEME,
-  escapeHtml,
+  SITE_DOMAIN,
   stripTags,
+  stripMarkdown,
   createTransporter,
   maskEmail,
   addressFromFormatted,
-  renderEmailCard,
+  renderBlogPostEmail,
+  wrapEmailPreviewDocument,
+  coverRawUrl,
+  coverDataUri,
 } from './lib/mail-theme.mjs';
 
 const BLOG_DIR = 'src/content/blog';
-const DEFAULT_SITE_URL = 'https://aselling.us';
+const DEFAULT_SITE_URL = `https://${SITE_DOMAIN}`;
 const ZERO_SHA = /^0+$/;
 
 const args = process.argv.slice(2);
 const dryRun = takeFlag('--dry-run');
 const all = takeFlag('--all');
+const previewMode = takeFlag('--preview');
 const since = takeOption('--since');
 const head = takeOption('--head') ?? 'HEAD';
 const explicitFiles = args.filter((arg) => !arg.startsWith('-'));
@@ -144,6 +148,21 @@ function isPublishable(post) {
   return true;
 }
 
+function toPost(file, data) {
+  const slug = path.basename(file, '.md');
+  const siteUrl = (process.env.SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, '');
+  return {
+    file,
+    slug,
+    url: `${siteUrl}/blog/${slug}/`,
+    title: String(data.title),
+    description: data.description ? String(data.description) : '',
+    date: data.date ? String(data.date) : '',
+    cover: data.cover ? String(data.cover) : '',
+    coverCaption: data.coverCaption ? String(data.coverCaption) : '',
+  };
+}
+
 function postFromChange(change) {
   const current = parseFrontmatter(readCurrent(change.currentPath));
   const previous =
@@ -157,16 +176,7 @@ function postFromChange(change) {
   const shouldSend = all || explicitFiles.length > 0 || !wasPublishable;
   if (!shouldSend) return undefined;
 
-  const slug = path.basename(change.currentPath, '.md');
-  const siteUrl = (process.env.SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, '');
-  return {
-    file: change.currentPath,
-    slug,
-    url: `${siteUrl}/blog/${slug}/`,
-    title: String(current.data.title),
-    description: current.data.description ? String(current.data.description) : '',
-    date: current.data.date ? String(current.data.date) : '',
-  };
+  return toPost(change.currentPath, current.data);
 }
 
 function splitRecipients(value) {
@@ -209,15 +219,19 @@ async function fetchWorkerSubscribers() {
   }
 }
 
-function renderPostEmailHtml(post, preview, unsubscribe) {
-  return renderEmailCard({
-    eyebrow: '03 / writing · new post',
+function coverAlt(post) {
+  return post.coverCaption ? stripMarkdown(post.coverCaption) : `Cover art for ${stripMarkdown(post.title)}`;
+}
+
+function renderPostEmailHtml(post, preview, unsubscribe, coverUrl) {
+  return renderBlogPostEmail({
     title: post.title,
-    bodyHtml: preview
-      ? `<p style="margin:0;font-family:${EMAIL_THEME.fontBody};font-size:15px;line-height:1.6;color:${EMAIL_THEME.textDim};">${escapeHtml(stripTags(preview))}</p>`
-      : '',
-    cta: { href: post.url, label: 'Read the post →' },
-    footerHtml: `sent to subscribers of asellingson28.github.io &middot; <a href="${escapeHtml(unsubscribe)}" style="color:${EMAIL_THEME.textDim};">unsubscribe</a>`,
+    url: post.url,
+    preview,
+    unsubscribe,
+    coverUrl,
+    coverAlt: coverUrl ? coverAlt(post) : undefined,
+    coverCaption: coverUrl ? post.coverCaption : undefined,
   });
 }
 
@@ -227,23 +241,24 @@ function mailForPost(post, subscribers) {
   const replyTo = process.env.MAIL_REPLY_TO || undefined;
   const unsubscribe = unsubscribeUrl(from);
   const preview = post.description || `A new post is live on ${new URL(post.url).hostname}.`;
+  const coverUrl = coverRawUrl(post.file, post.cover);
 
   return {
     from,
     to,
     bcc: subscribers,
     replyTo,
-    subject: `New post: ${post.title}`,
+    subject: `New post: ${stripMarkdown(post.title)}`,
     text: [
-      post.title,
+      stripMarkdown(post.title),
       '',
-      stripTags(preview),
+      stripMarkdown(stripTags(preview)),
       '',
       `Read it here: ${post.url}`,
       '',
       `Unsubscribe: ${unsubscribe}`,
     ].join('\n'),
-    html: renderPostEmailHtml(post, preview, unsubscribe),
+    html: renderPostEmailHtml(post, preview, unsubscribe, coverUrl),
     list: {
       unsubscribe,
     },
@@ -251,6 +266,43 @@ function mailForPost(post, subscribers) {
       'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
     },
   };
+}
+
+if (previewMode) {
+  if (explicitFiles.length === 0) {
+    console.error('Usage: npm run notify:blog -- --preview <file.md> [file...]');
+    process.exit(1);
+  }
+
+  const outDir = '.cache';
+  fs.mkdirSync(outDir, { recursive: true });
+
+  for (const file of explicitFiles) {
+    const parsed = parseFrontmatter(readCurrent(file));
+    if (!parsed?.data?.title) {
+      console.error(`Skipping ${file}: no title in frontmatter.`);
+      continue;
+    }
+
+    // Deliberately skips isPublishable() — previewing a draft is the point.
+    const post = toPost(file, parsed.data);
+    const from = process.env.MAIL_FROM || 'preview@example.com';
+    const unsubscribe = unsubscribeUrl(from);
+    const preview = post.description || `A new post is live on ${new URL(post.url).hostname}.`;
+    const coverUrl = coverDataUri(post.file, post.cover);
+    const html = renderPostEmailHtml(post, preview, unsubscribe, coverUrl);
+    const doc = wrapEmailPreviewDocument(html, { title: `Email preview: ${stripMarkdown(post.title)}` });
+
+    const outFile = path.join(outDir, `email-preview-${post.slug}.html`);
+    fs.writeFileSync(outFile, doc);
+    console.log(`Wrote preview: ${outFile}`);
+    try {
+      execFileSync('open', [outFile]);
+    } catch {
+      console.log(`(Could not auto-open; open ${outFile} manually.)`);
+    }
+  }
+  process.exit(0);
 }
 
 const changes =

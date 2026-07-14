@@ -1,4 +1,50 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import nodemailer from 'nodemailer';
+import { renderInlineMarkdown, stripMarkdown } from '../../src/lib/inline-markdown.mjs';
+
+export { stripMarkdown };
+
+// The site's public domain, as referenced in outbound email copy.
+export const SITE_DOMAIN = 'aselling.us';
+
+// Blog post covers live in src/content/blog/ and are only reachable through
+// Astro's content-image pipeline (hashed /_astro/* output) once built —
+// scripts here run outside that pipeline and can't predict the hash. The
+// repo is public, so raw.githubusercontent.com serves the original file
+// directly and needs no build step.
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/asellingson28/asellingson28.github.io/main';
+
+const IMAGE_MIME_TYPES = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.avif': 'image/avif',
+};
+
+// Resolves a post's `cover: ./foo.jpg` frontmatter value (relative to the
+// markdown file) to a public URL real subscribers' email clients can fetch.
+export function coverRawUrl(mdFile, coverValue) {
+  if (!coverValue) return undefined;
+  const dir = path.posix.dirname(mdFile.split(path.sep).join('/'));
+  const repoPath = path.posix.normalize(path.posix.join(dir, coverValue));
+  return `${GITHUB_RAW_BASE}/${repoPath}`;
+}
+
+// Same resolution, but reads the file straight off local disk and embeds it
+// as a data: URI — for preview only. Unlike coverRawUrl, this shows the
+// cover as it currently sits on disk even if it's never been committed or
+// pushed, which is the point of a *local* preview.
+export function coverDataUri(mdFile, coverValue) {
+  if (!coverValue) return undefined;
+  const dir = path.dirname(mdFile);
+  const absPath = path.join(dir, coverValue);
+  const mime = IMAGE_MIME_TYPES[path.extname(absPath).toLowerCase()];
+  if (!mime || !fs.existsSync(absPath)) return undefined;
+  return `data:${mime};base64,${fs.readFileSync(absPath).toString('base64')}`;
+}
 
 // Mirrors the site's default "royal" theme (src/styles/global.css root tokens):
 // dark ground, hairline gold rule, steel-blue accent, monospace annotations.
@@ -82,8 +128,29 @@ export function addressFromFormatted(value) {
 // Shared "royal" card shell used by both the new-post and confirm-subscription
 // emails: hairline gold->line->blue rule, mono eyebrow, serif title, optional
 // body copy, a bordered CTA button, hairline divider, mono footer.
-export function renderEmailCard({ eyebrow, title, bodyHtml, cta, footerHtml }) {
+// title is escaped as plain text by default; pass titleHtml instead (already
+// rendered/safe markup, e.g. via renderInlineMarkdown) to allow inline
+// markdown formatting like **bold** or [links](url) in the heading.
+export function renderEmailCard({
+  eyebrow,
+  title,
+  titleHtml,
+  coverUrl,
+  coverAlt,
+  coverCaptionHtml,
+  bodyHtml,
+  cta,
+  footerHtml,
+}) {
   const t = EMAIL_THEME;
+  const titleMarkup = titleHtml ?? escapeHtml(title);
+
+  const coverRow = coverUrl
+    ? `<tr><td style="padding:0 40px 24px;">
+<img data-role="cover" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(coverAlt ?? '')}" width="480" style="display:block;width:100%;max-width:480px;height:auto;border:1px solid ${t.line};" />
+${coverCaptionHtml ? `<p data-role="cover-caption" style="margin:6px 0 0;font-family:${t.fontMono};font-size:11px;letter-spacing:0.04em;color:${t.textFaint};">${coverCaptionHtml}</p>` : ''}
+</td></tr>`
+    : '';
 
   const bodyRow = bodyHtml
     ? `<tr><td style="padding:0 40px 28px;">${bodyHtml}</td></tr>`
@@ -105,8 +172,9 @@ export function renderEmailCard({ eyebrow, title, bodyHtml, cta, footerHtml }) {
     `<span style="font-family:${t.fontMono};font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${t.textFaint};">${escapeHtml(eyebrow)}</span>`,
     `</td></tr>`,
     `<tr><td style="padding:6px 40px 18px;">`,
-    `<h1 style="margin:0;font-family:${t.fontDisplay};font-weight:500;font-size:26px;line-height:1.3;color:${t.text};">${escapeHtml(title)}</h1>`,
+    `<h1 style="margin:0;font-family:${t.fontDisplay};font-weight:500;font-size:26px;line-height:1.3;color:${t.text};">${titleMarkup}</h1>`,
     `</td></tr>`,
+    coverRow,
     bodyRow,
     ctaRow,
     `<tr><td style="padding:0 40px;"><div style="border-top:1px solid ${t.line};font-size:0;line-height:0;">&nbsp;</div></td></tr>`,
@@ -119,4 +187,44 @@ export function renderEmailCard({ eyebrow, title, bodyHtml, cta, footerHtml }) {
   ]
     .filter(Boolean)
     .join('\n');
+}
+
+// The "new post" notification email — shared by the real send
+// (scripts/notify-blog-subscribers.mjs) and the dev-only editor preview
+// (scripts/dev-edit-blog.mjs) so the preview can't drift from what
+// subscribers actually get.
+export function renderBlogPostEmail({ title, url, preview, unsubscribe, coverUrl, coverAlt, coverCaption }) {
+  return renderEmailCard({
+    eyebrow: '03 / writing · new post',
+    titleHtml: renderInlineMarkdown(title),
+    coverUrl,
+    coverAlt,
+    coverCaptionHtml: coverUrl && coverCaption ? renderInlineMarkdown(coverCaption) : undefined,
+    bodyHtml: preview
+      ? `<p style="margin:0;font-family:${EMAIL_THEME.fontBody};font-size:15px;line-height:1.6;color:${EMAIL_THEME.textDim};">${renderInlineMarkdown(stripTags(preview))}</p>`
+      : '',
+    cta: { href: url, label: 'Read the post →' },
+    footerHtml: `sent to subscribers of ${SITE_DOMAIN} &middot; <a href="${escapeHtml(unsubscribe)}" style="color:${EMAIL_THEME.textDim};">unsubscribe</a>`,
+  });
+}
+
+// Wraps a rendered email fragment (from renderEmailCard/renderBlogPostEmail)
+// in a minimal document with an explicit charset. The fragment alone has no
+// <head>, so opening it directly (a local .html file, or a Blob without a
+// charset param) leaves the browser to guess the encoding — and it reliably
+// guesses wrong for non-ASCII characters (em dashes, curly quotes, accents),
+// garbling them. Real sent mail doesn't need this: nodemailer sets the
+// charset in the MIME headers itself. This is preview-only.
+export function wrapEmailPreviewDocument(bodyHtml, { title = 'Email preview' } = {}) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${escapeHtml(title)}</title>
+</head>
+<body style="margin:0;">
+${bodyHtml}
+</body>
+</html>`;
 }

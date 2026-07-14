@@ -86,6 +86,8 @@ const devJson = import.meta.env.DEV
 <script>
   // dev-only blog editor — import.meta.env.DEV is statically false in builds,
   // so none of this ships
+  import { renderInlineMarkdown } from '../../lib/inline-markdown.mjs';
+
   if (import.meta.env.DEV) {
     interface PostData {
       id: string;
@@ -140,6 +142,7 @@ const devJson = import.meta.env.DEV
             <div class="row">
               <button type="submit">save post</button>
               <button type="button" id="post-preview-refresh">refresh preview</button>
+              <button type="button" id="post-preview-email">preview email</button>
               <button type="button" id="post-cancel">cancel</button>
             </div>
           </form>
@@ -209,6 +212,54 @@ const devJson = import.meta.env.DEV
 
       document.getElementById('post-preview-refresh')?.addEventListener('click', () => updatePreview());
       updatePreview();
+
+      document.getElementById('post-preview-email')?.addEventListener('click', async () => {
+        const fd = new FormData(formEl);
+        const res = await fetch('/__edit-blog/preview-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            slug: p?.id,
+            title: fd.get('title'),
+            description: fd.get('description'),
+            coverCaption: fd.get('coverCaption'),
+          }),
+        });
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({ error: res.statusText }));
+          alert(`Could not build email preview: ${error}`);
+          return;
+        }
+        let { html } = await res.json();
+
+        // a cover just picked in the form hasn't been uploaded yet, so the
+        // server has no way to see it — splice in a blob URL for it here,
+        // same trick the on-page preview above uses for its cover figure
+        const cover = fd.get('cover') as File | null;
+        if (cover && cover.size > 0) {
+          const coverBlobUrl = URL.createObjectURL(cover);
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const existingImg = doc.querySelector('img[data-role="cover"]');
+          if (existingImg) {
+            // caption already reflects the live form value — the server
+            // rendered it from the same request, only the image src is stale
+            existingImg.setAttribute('src', coverBlobUrl);
+          } else {
+            const captionText = String(fd.get('coverCaption') ?? '').trim();
+            const captionHtml = captionText
+              ? `<p data-role="cover-caption" style="margin:6px 0 0;font-family:'Courier New', Courier, monospace;font-size:11px;letter-spacing:0.04em;color:#565c68;">${renderInlineMarkdown(captionText)}</p>`
+              : '';
+            const titleRow = doc.querySelector('h1')?.closest('tr');
+            const coverRow = doc.createElement('tr');
+            coverRow.innerHTML = `<td style="padding:0 40px 24px;"><img data-role="cover" src="${coverBlobUrl}" alt="" width="480" style="display:block;width:100%;max-width:480px;height:auto;border:1px solid #232b38;" />${captionHtml}</td>`;
+            titleRow?.after(coverRow);
+          }
+          html = `<!doctype html>\n${doc.documentElement.outerHTML}`;
+        }
+
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        window.open(URL.createObjectURL(blob), '_blank');
+      });
 
       document.getElementById('insert-image-input')?.addEventListener('change', async (ev) => {
         const input = ev.currentTarget as HTMLInputElement;
@@ -448,7 +499,8 @@ const devJson = import.meta.env.DEV
   }
   .post-editor button[type='submit']:hover { background: var(--color-gold-bright); }
   .post-editor #post-cancel,
-  .post-editor #post-preview-refresh {
+  .post-editor #post-preview-refresh,
+  .post-editor #post-preview-email {
     background: none;
     border: 1px solid var(--color-line-bright);
     color: var(--color-text-dim);
@@ -460,7 +512,8 @@ const devJson = import.meta.env.DEV
     cursor: pointer;
   }
   .post-editor #post-cancel:hover,
-  .post-editor #post-preview-refresh:hover {
+  .post-editor #post-preview-refresh:hover,
+  .post-editor #post-preview-email:hover {
     color: var(--color-gold-bright);
     border-color: var(--color-gold);
   }

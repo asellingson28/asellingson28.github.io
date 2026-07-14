@@ -20,6 +20,16 @@
 //   real site uses (title/description/tags/coverCaption via inline-markdown.mjs,
 //   body via @astrojs/markdown-remark + the site's remark plugins) so the
 //   preview can't silently drift from what the built post will look like
+// POST /__edit-blog/preview-email { slug?, title, description?, coverCaption? }
+//   renders the not-yet-saved title/description through the same "new post"
+//   notification email template scripts/notify-blog-subscribers.mjs sends
+//   (via scripts/lib/mail-theme.mjs's renderBlogPostEmail) so the "preview
+//   email" button can't drift from what subscribers actually get; no mail is
+//   sent and the subscriber list is never touched. If the post already has a
+//   saved cover image on disk, it's inlined as a data: URI; a cover picked in
+//   the form but not yet uploaded isn't visible to this endpoint at all — the
+//   client substitutes a blob URL for that case (see post-preview-email in
+//   src/pages/blog/index.astro)
 // NOTE: loaded once at dev-server startup — restart `npm run dev` after edits.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -27,6 +37,13 @@ import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 import remarkFootnoteTitles from './remark-footnote-titles.mjs';
 import rehypeImageCaptions from './rehype-image-captions.mjs';
 import { renderInlineMarkdown } from '../src/lib/inline-markdown.mjs';
+import {
+  SITE_DOMAIN,
+  renderBlogPostEmail,
+  wrapEmailPreviewDocument,
+  stripMarkdown,
+  coverDataUri,
+} from './lib/mail-theme.mjs';
 
 // created lazily (it's not free) and reused across preview requests
 let processorPromise;
@@ -151,6 +168,55 @@ export function blogEditHandler({ dir = path.resolve('src/content/blog') } = {})
         } catch (err) {
           reply(500, { error: err instanceof Error ? err.message : 'preview failed' });
         }
+      });
+      return;
+    }
+
+    if (url.pathname === '/preview-email') {
+      let raw = '';
+      req.on('data', (chunk) => (raw += chunk));
+      req.on('end', () => {
+        let p;
+        try {
+          p = JSON.parse(raw);
+        } catch {
+          return reply(400, { error: 'invalid JSON' });
+        }
+        const title = String(p.title ?? '').trim();
+        if (!title) return reply(400, { error: 'title is required' });
+
+        const slug = p.slug ? slugify(String(p.slug)) : slugify(title);
+        const description = String(p.description ?? '').trim();
+        const coverCaption = String(p.coverCaption ?? '').trim();
+        const postUrl = `https://${SITE_DOMAIN}/blog/${slug}/`;
+        const preview = description || `A new post is live on ${SITE_DOMAIN}.`;
+        const unsubscribe = `mailto:example@${SITE_DOMAIN}?subject=unsubscribe`;
+
+        const mdFile = path.join(dir, `${slug}.md`);
+        let coverUrl;
+        for (const ext of IMAGE_EXTS) {
+          if (fs.existsSync(path.join(dir, `${slug}-cover${ext}`))) {
+            coverUrl = coverDataUri(mdFile, `./${slug}-cover${ext}`);
+            break;
+          }
+        }
+        const coverAlt = coverUrl
+          ? coverCaption
+            ? stripMarkdown(coverCaption)
+            : `Cover art for ${stripMarkdown(title)}`
+          : undefined;
+
+        const html = renderBlogPostEmail({
+          title,
+          url: postUrl,
+          preview,
+          unsubscribe,
+          coverUrl,
+          coverAlt,
+          coverCaption: coverUrl ? coverCaption : undefined,
+        });
+        const doc = wrapEmailPreviewDocument(html, { title: `Email preview: ${stripMarkdown(title)}` });
+        reply(200, { html: doc });
       });
       return;
     }

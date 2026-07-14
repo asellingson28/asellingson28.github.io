@@ -2,7 +2,7 @@
 title: "On *Arrival (2016)*"
 date: 2026-07-14
 tags: ["film","linguistics","existentialism"]
-description: "my thoughts on the film and its relevance to our current world"
+description: "My thoughts on the sci-fi film and its relevance to our current world"
 coverCaption: "Scene from *Arrival* depicting the orb-like ship. Source: TMDB"
 cover: ./on-arrival-2016-cover.jpg
 draft: true

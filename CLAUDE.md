@@ -9,6 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run preview` — serve the built site
 - `npm run fetch:media` — refresh `src/data/goodreads.json` / `src/data/letterboxd.json` / `src/data/github.json` (see Media snapshots below)
 - `npm run notify:blog -- [--dry-run] [--all] [--since <ref>] [file...]` — email subscribers about newly-published posts
+- `npm run notify:blog -- --preview <file.md> [file...]` — render the notification email for a post (drafts included, ignores `notify`/`email: false`) to `.cache/email-preview-<slug>.html` and open it; never sends anything or touches the subscriber list
 - `npm run notify:confirm -- [--dry-run]` — send pending double opt-in confirmation emails
 - `npx playwright test` — e2e tests; single file: `npx playwright test tests/example.spec.ts`; single test: `npx playwright test -g "test name"`; one browser: `--project=chromium`
 - `npm run spellcheck` — cspell over `src/`, `scripts/`, `worker/src/`, `tests/`, and root markdown/config files; also runs automatically on `git commit` (staged files only) via the husky hook in `.husky/pre-commit`. Project-specific words (proper nouns, technical terms) live in the `words` list in `cspell.json` — add new ones there rather than disabling the check.

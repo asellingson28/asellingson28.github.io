@@ -9,6 +9,7 @@
     "notify:blog": "node scripts/notify-blog-subscribers.mjs",
     "notify:confirm": "node scripts/send-subscription-confirmations.mjs",
     "fetch:media": "node scripts/fetch-media.mjs",
+    "subscribers": "npm run subscribers --prefix worker",
     "spellcheck": "cspell --no-progress \"src/**/*.{md,astro,ts,tsx,js,mjs}\" \"scripts/**/*.mjs\" \"worker/src/**/*.{ts,js}\" \"tests/**/*.ts\" \"*.{md,mjs,ts}\"",
     "spellcheck:add-words": "node scripts/cspell-add-words.mjs",
     "prepare": "husky"
