@@ -160,6 +160,12 @@ const timelinePlaces = mapPlaces
     {import.meta.env.DEV && (
       <button id="add-place" class="add-place-btn mono-label" type="button" title="Dev only: click the map to create a place file">+ add place</button>
     )}
+    {import.meta.env.DEV && (
+      <form id="address-search-form" class="address-search" title="Dev only: geocode an address and jump the map there">
+        <input id="address-search-input" type="text" placeholder="search address…" />
+        <button type="submit" class="mono-label">search</button>
+      </form>
+    )}
   </div>
 
   <div class="map-frame">
@@ -373,11 +379,11 @@ const timelinePlaces = mapPlaces
       map.getContainer().style.cursor = arming ? 'crosshair' : '';
     });
 
-    map.on('click', (e) => {
-      if (!arming) return;
-      const { lat, lng } = e.latlng;
+    // shared by "click the map" and the address search below
+    const openAddFormAt = (latlng: L.LatLng) => {
+      const { lat, lng } = latlng;
       L.popup({ maxWidth: 300, closeOnClick: false })
-        .setLatLng(e.latlng)
+        .setLatLng(latlng)
         .setContent(formHtml(`new place · ${lat.toFixed(4)}, ${lng.toFixed(4)}`, {}))
         .openOn(map);
       wireForm('/__add-place', { coords: [lat, lng] });
@@ -385,6 +391,50 @@ const timelinePlaces = mapPlaces
       btn?.classList.remove('armed');
       if (btn) btn.textContent = '+ add place';
       map.getContainer().style.cursor = '';
+    };
+
+    map.on('click', (e) => {
+      if (!arming) return;
+      openAddFormAt(e.latlng);
+    });
+
+    // address search: geocode client-side against Nominatim (same service
+    // src/lib/geocode.ts uses at build time, just called from the browser
+    // here instead), then jump the map there and open the add-place form —
+    // dev-only, like everything else in this block, so it never ships
+    const searchForm = document.getElementById('address-search-form') as HTMLFormElement | null;
+    const searchInput = document.getElementById('address-search-input') as HTMLInputElement | null;
+
+    searchForm?.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const query = searchInput?.value.trim();
+      if (!query) return;
+
+      const submitBtn = searchForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'searching…';
+      }
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`
+        );
+        const results: Array<{ lat: string; lon: string }> = res.ok ? await res.json() : [];
+        if (!results.length) {
+          alert(`No match for "${query}"`);
+          return;
+        }
+        const latlng = L.latLng(Number(results[0].lat), Number(results[0].lon));
+        map.setView(latlng, 13);
+        openAddFormAt(latlng);
+      } catch {
+        alert('Address search failed — check your connection.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'search';
+        }
+      }
     });
 
     // edit: each marker popup gets a button that swaps in the pre-filled form
@@ -542,6 +592,31 @@ const timelinePlaces = mapPlaces
   }
   .add-place-btn:hover { color: var(--color-gold-bright); border-color: var(--color-gold); }
   .add-place-btn.armed { color: var(--color-gold-bright); border-color: var(--color-gold); border-style: solid; }
+
+  .address-search { display: flex; gap: 0.4rem; }
+  .address-search input {
+    background: var(--color-bg-inset);
+    border: 1px dashed var(--color-line-bright);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.5rem;
+    width: 180px;
+  }
+  .address-search input:focus { outline: none; border-color: var(--color-gold); }
+  .address-search button {
+    background: none;
+    border: 1px dashed var(--color-line-bright);
+    color: var(--color-text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+  }
+  .address-search button:hover { color: var(--color-gold-bright); border-color: var(--color-gold); }
+  .address-search button:disabled { opacity: 0.5; cursor: default; }
 
   .dot {
     display: inline-block;

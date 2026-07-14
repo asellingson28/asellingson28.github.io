@@ -1,0 +1,5 @@
+staged=$(git diff --cached --name-only --diff-filter=ACM -- '*.md' '*.astro' '*.ts' '*.tsx' '*.js' '*.mjs' | grep -v '^src/data/')
+
+if [ -n "$staged" ]; then
+  echo "$staged" | xargs npx cspell --no-progress --no-must-find-files
+fi

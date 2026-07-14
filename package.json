@@ -8,9 +8,12 @@
     "preview": "astro preview",
     "notify:blog": "node scripts/notify-blog-subscribers.mjs",
     "notify:confirm": "node scripts/send-subscription-confirmations.mjs",
-    "fetch:media": "node scripts/fetch-media.mjs"
+    "fetch:media": "node scripts/fetch-media.mjs",
+    "spellcheck": "cspell --no-progress \"src/**/*.{md,astro,ts,tsx,js,mjs}\" \"scripts/**/*.mjs\" \"worker/src/**/*.{ts,js}\" \"tests/**/*.ts\" \"*.{md,mjs,ts}\"",
+    "prepare": "husky"
   },
   "dependencies": {
+    "@astrojs/markdown-remark": "^7.0.0",
     "astro": "^6.0.5",
     "install.js": "^1.0.1",
     "leaflet": "^1.9.4",
@@ -29,6 +32,8 @@
     "@types/leaflet": "^1.9.21",
     "@types/leaflet.markercluster": "^1.5.6",
     "@types/node": "^26.1.1",
+    "cspell": "^10.0.1",
+    "husky": "^9.1.7",
     "playwright-core": "^1.61.1",
     "prettier": "^3.9.4"
   }

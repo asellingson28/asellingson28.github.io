@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 // Every static page on the site, with the bits that should always be true.
 const pages = [
   { path: '/', title: 'Home', heading: "Hi, I'm Arjan." },
+  { path: '/working', title: 'Working', heading: 'Working' },
   { path: '/projects', title: 'Doing', heading: 'Doing' },
   { path: '/blog', title: 'Writing', heading: 'Writing' },
   { path: '/books', title: 'Reading', heading: 'Reading' },

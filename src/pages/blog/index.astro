@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SubscribeForm from '../../components/SubscribeForm.astro';
+import { renderInlineMarkdown, stripMarkdown } from '../../lib/inline-markdown.mjs';
 
 // getCollection reads every .md file matched by the loader in content.config.ts
 // (in dev, drafts are included so they can be edited; builds still skip them)
@@ -46,7 +47,7 @@ const devJson = import.meta.env.DEV
     {posts.map((post) => (
       <li>
         <div class="post-main">
-          <a href={`/blog/${post.id}`}>{post.data.title}</a>
+          <a href={`/blog/${post.id}`} set:html={renderInlineMarkdown(post.data.title)} />
           {import.meta.env.DEV && post.data.draft && <span class="draft-badge mono-label">draft</span>}
           {import.meta.env.DEV && (
             <button class="post-edit dev-btn mono-label" data-id={post.id} type="button">edit</button>
@@ -54,11 +55,11 @@ const devJson = import.meta.env.DEV
           <span class="mono-label post-date">
             {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
           </span>
-          {post.data.description && <p class="post-desc">{post.data.description}</p>}
+          {post.data.description && <p class="post-desc" set:html={renderInlineMarkdown(post.data.description)} />}
           {post.data.tags && post.data.tags.length > 0 && (
             <ul class="tag-list">
               {post.data.tags.slice(0, 3).map((tag) => (
-                <li class="tag">{tag}</li>
+                <li class="tag" set:html={renderInlineMarkdown(tag)} />
               ))}
               {post.data.tags.length > 3 && (
                 <li class="tag tag-more">+{post.data.tags.length - 3}</li>
@@ -68,8 +69,8 @@ const devJson = import.meta.env.DEV
         </div>
         {post.data.cover && (
           <figure class="post-cover">
-            <Image src={post.data.cover} alt={post.data.coverCaption?.replace(/<[^>]+>/g, '') ?? `Cover art for ${post.data.title}`} width={560} />
-            {post.data.coverCaption && <figcaption class="mono-label" set:html={post.data.coverCaption} />}
+            <Image src={post.data.cover} alt={post.data.coverCaption ? stripMarkdown(post.data.coverCaption) : `Cover art for ${stripMarkdown(post.data.title)}`} width={560} />
+            {post.data.coverCaption && <figcaption class="mono-label" set:html={renderInlineMarkdown(post.data.coverCaption)} />}
           </figure>
         )}
       </li>
@@ -97,6 +98,14 @@ const devJson = import.meta.env.DEV
       body: string;
     }
 
+    interface PreviewResponse {
+      titleHtml: string;
+      descriptionHtml: string;
+      tagsHtml: string[];
+      coverCaptionHtml: string;
+      bodyHtml: string;
+    }
+
     const posts: PostData[] = JSON.parse(
       document.getElementById('blog-dev-data')?.textContent ?? '[]'
     );
@@ -108,28 +117,84 @@ const devJson = import.meta.env.DEV
 
     const open = (p?: PostData) => {
       dialog.innerHTML = `
-        <form id="post-form">
-          <span class="mono-label">${p ? `edit · src/content/blog/${esc(p.id)}.md` : 'new post'}</span>
-          <input name="title" placeholder="Title" required value="${esc(p?.title ?? '')}" />
-          <div class="row">
-            <input name="date" type="date" required value="${esc(p?.date ?? new Date().toISOString().slice(0, 10))}" />
-            <label class="mono-label draft-toggle"><input type="checkbox" name="draft" ${p?.draft ? 'checked' : ''} /> draft</label>
+        <div class="post-editor-layout">
+          <form id="post-form">
+            <span class="mono-label">${p ? `edit · src/content/blog/${esc(p.id)}.md` : 'new post'}</span>
+            <input name="title" placeholder="Title (markdown ok: **bold**, *italic*, \`code\`, [text](url))" required value="${esc(p?.title ?? '')}" />
+            <div class="row">
+              <input name="date" type="date" required value="${esc(p?.date ?? new Date().toISOString().slice(0, 10))}" />
+              <label class="mono-label draft-toggle"><input type="checkbox" name="draft" ${p?.draft ? 'checked' : ''} /> draft</label>
+            </div>
+            <input name="description" placeholder="Description (markdown ok)" value="${esc(p?.description ?? '')}" />
+            <input name="tags" placeholder="Tags (comma-separated, markdown ok)" value="${esc(p?.tags ?? '')}" />
+            <label class="mono-label cover-label">cover art ${p?.hasCover ? '(leave empty to keep current)' : ''}
+              <input type="file" name="cover" accept="image/*" />
+            </label>
+            <input name="coverCaption" placeholder="Cover caption / credit (markdown ok)" value="${esc(p?.coverCaption ?? '')}" />
+            <textarea name="body" rows="16" placeholder="Body (markdown)">${esc(p?.body ?? '')}</textarea>
+            <div class="row">
+              <button type="submit">save post</button>
+              <button type="button" id="post-preview-refresh">refresh preview</button>
+              <button type="button" id="post-cancel">cancel</button>
+            </div>
+          </form>
+          <div id="post-preview" class="post-preview">
+            <span class="mono-label">preview</span>
+            <div id="post-preview-body"></div>
           </div>
-          <input name="description" placeholder="Description" value="${esc(p?.description ?? '')}" />
-          <input name="tags" placeholder="Tags (comma-separated)" value="${esc(p?.tags ?? '')}" />
-          <label class="mono-label cover-label">cover art ${p?.hasCover ? '(leave empty to keep current)' : ''}
-            <input type="file" name="cover" accept="image/*" />
-          </label>
-          <input name="coverCaption" placeholder="Cover caption / credit" value="${esc(p?.coverCaption ?? '')}" />
-          <textarea name="body" rows="16" placeholder="Body (markdown)">${esc(p?.body ?? '')}</textarea>
-          <div class="row">
-            <button type="submit">save post</button>
-            <button type="button" id="post-cancel">cancel</button>
-          </div>
-        </form>`;
+        </div>`;
       dialog.showModal();
 
+      const formEl = document.getElementById('post-form') as HTMLFormElement;
+      const previewBody = document.getElementById('post-preview-body') as HTMLDivElement;
+
       document.getElementById('post-cancel')?.addEventListener('click', () => dialog.close());
+
+      const updatePreview = async () => {
+        const fd = new FormData(formEl);
+        const res = await fetch('/__edit-blog/preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: fd.get('title'),
+            description: fd.get('description'),
+            tags: fd.get('tags'),
+            coverCaption: fd.get('coverCaption'),
+            body: fd.get('body'),
+          }),
+        });
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({ error: res.statusText }));
+          alert(`Could not build preview: ${error}`);
+          return;
+        }
+        const { titleHtml, descriptionHtml, tagsHtml, coverCaptionHtml, bodyHtml }: PreviewResponse = await res.json();
+        const cover = fd.get('cover') as File | null;
+        const coverSrc = cover && cover.size > 0 ? URL.createObjectURL(cover) : null;
+        const dateStr = String(fd.get('date') ?? '');
+        const dateLabel = dateStr
+          ? new Date(`${dateStr}T00:00:00`).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+          : '';
+
+        previewBody.innerHTML = `
+          ${dateLabel ? `<span class="mono-label">${esc(dateLabel)}</span>` : ''}
+          <h1>${titleHtml}</h1>
+          ${tagsHtml.length ? `<ul class="tag-list">${tagsHtml.map((t) => `<li class="tag mono-label">${t}</li>`).join('')}</ul>` : ''}
+          ${
+            coverSrc
+              ? `<figure class="post-cover"><img src="${coverSrc}" />${coverCaptionHtml ? `<figcaption class="mono-label">${coverCaptionHtml}</figcaption>` : ''}</figure>`
+              : p?.hasCover
+                ? '<p class="mono-label" style="opacity: 0.6;">(existing cover art not shown in preview — pick a new file to preview a cover)</p>'
+                : ''
+          }
+          ${descriptionHtml ? `<p class="post-desc">${descriptionHtml}</p>` : ''}
+          <div class="prose">${bodyHtml}</div>
+        `;
+      };
+
+      document.getElementById('post-preview-refresh')?.addEventListener('click', () => updatePreview());
+      updatePreview();
+
       document.getElementById('post-form')?.addEventListener('submit', async (ev) => {
         ev.preventDefault();
         const fd = new FormData(ev.currentTarget as HTMLFormElement);
@@ -275,7 +340,9 @@ const devJson = import.meta.env.DEV
   .post-edit { margin-left: 0.6rem; padding: 0.1rem 0.45rem; }
 
   .post-editor {
-    width: min(680px, 92vw);
+    width: min(1160px, 95vw);
+    max-height: 90vh;
+    overflow-y: auto;
     background: var(--color-bg-elevated);
     color: var(--color-text);
     border: 1px solid var(--color-line-bright);
@@ -283,6 +350,15 @@ const devJson = import.meta.env.DEV
     padding: var(--space-3);
   }
   .post-editor::backdrop { background: rgba(10, 13, 18, 0.75); }
+  .post-editor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .post-editor-layout { grid-template-columns: 1fr; }
+  }
   .post-editor form { display: grid; gap: 0.6rem; }
   .post-editor .row { display: flex; gap: 0.6rem; align-items: center; }
   .post-editor input,
@@ -313,7 +389,8 @@ const devJson = import.meta.env.DEV
     cursor: pointer;
   }
   .post-editor button[type='submit']:hover { background: var(--color-gold-bright); }
-  .post-editor #post-cancel {
+  .post-editor #post-cancel,
+  .post-editor #post-preview-refresh {
     background: none;
     border: 1px solid var(--color-line-bright);
     color: var(--color-text-dim);
@@ -324,4 +401,50 @@ const devJson = import.meta.env.DEV
     padding: 0.45rem 0.7rem;
     cursor: pointer;
   }
+  .post-editor #post-cancel:hover,
+  .post-editor #post-preview-refresh:hover {
+    color: var(--color-gold-bright);
+    border-color: var(--color-gold);
+  }
+
+  /* rendered post-editor preview — sits beside the form as its own panel,
+     mirroring the real /blog/[slug] typography closely enough to catch
+     formatting mistakes, without being pixel-exact */
+  .post-preview {
+    border: 1px dashed var(--color-line-bright);
+    border-radius: 4px;
+    padding: var(--space-3);
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+  .post-preview h1 {
+    font-family: var(--font-display);
+    margin: 0.5rem 0 0;
+  }
+  .post-preview .tag-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0.6rem 0 0;
+  }
+  .post-preview .tag {
+    color: var(--color-blue-bright);
+    border: 1px solid var(--color-line-bright);
+    border-radius: 3px;
+    padding: 0.15rem 0.5rem;
+  }
+  .post-preview .post-cover { margin: var(--space-3) 0 0; }
+  .post-preview .post-cover img {
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+    display: block;
+    border: 1px solid var(--color-line);
+  }
+  .post-preview .post-cover figcaption { margin-top: 0.4rem; text-transform: none; letter-spacing: 0.04em; }
+  .post-preview .post-desc { color: var(--color-text-dim); margin-top: 0.6rem; }
+  .post-preview .prose { margin-top: var(--space-3); }
+  .post-preview .prose p { color: var(--color-text); margin: 0.8rem 0; }
 </style>

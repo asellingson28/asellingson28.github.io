@@ -1,7 +1,18 @@
 {
-  "fetchedAt": "2026-07-13T19:28:34.195Z",
+  "fetchedAt": "2026-07-14T04:35:04.848Z",
   "username": "aselling",
   "films": [
+    {
+      "title": "Arrival",
+      "year": 2016,
+      "link": "https://letterboxd.com/aselling/film/arrival-2016/",
+      "poster": "https://a.ltrbxd.com/resized/alternative-poster/2/5/7/4/2/6/p/ypNmhRafhV7aYkXogpgeXls1ReL-0-600-0-900-crop.jpg?v=34fdc8eddd",
+      "rating": null,
+      "liked": true,
+      "rewatch": false,
+      "watchedDate": "2026-07-13",
+      "review": "For a space movie hater, I seem to cry at a lot of them. Very happy to have watched this in the theatre experience. In depth review to come."
+    },
     {
       "title": "Jinsei",
       "year": 2025,
@@ -498,17 +509,6 @@
       "review": "what'd you do over winter break?oh you know, covered the Statue Of Liberty with silly string, made it go mobile, and crashed it into an art museum"
     },
     {
-      "title": "Asteroid City",
-      "year": 2023,
-      "link": "https://letterboxd.com/aselling/film/asteroid-city/",
-      "poster": "https://a.ltrbxd.com/resized/alternative-poster/6/6/8/5/5/5/p/mqcQgnSgwsCorYoKQ1K0ORizse2-0-600-0-900-crop.jpg?v=cfc027696e",
-      "rating": null,
-      "liked": false,
-      "rewatch": false,
-      "watchedDate": "2026-06-04",
-      "review": "genuinely how much weed did I just watch"
-    },
-    {
       "title": "Oppenheimer",
       "year": 2023,
       "link": "https://letterboxd.com/aselling/film/oppenheimer-2023/2/",
@@ -619,12 +619,6 @@
       "poster": "https://a.ltrbxd.com/resized/film-poster/9/2/1/5/7/8/921578-inside-out-2-0-600-0-900-crop.jpg?v=efa25e5cca"
     },
     {
-      "title": "Arrival",
-      "year": 2016,
-      "link": "https://letterboxd.com/film/arrival-2016/",
-      "poster": "https://a.ltrbxd.com/resized/sm/upload/3u/dy/qd/qd/4Iu5f2nv7huqvuYkmZvSPOtbFjs-0-600-0-900-crop.jpg?v=0fc28fdf2c"
-    },
-    {
       "title": "Pride & Prejudice",
       "year": 2005,
       "link": "https://letterboxd.com/film/pride-prejudice/",
@@ -677,6 +671,12 @@
       "year": 1968,
       "link": "https://letterboxd.com/film/2001-a-space-odyssey/",
       "poster": "https://a.ltrbxd.com/resized/film-poster/5/1/9/8/7/51987-2001-a-space-odyssey-0-600-0-900-crop.jpg?v=a69c46a272"
+    },
+    {
+      "title": "Brokeback Mountain",
+      "year": 2005,
+      "link": "https://letterboxd.com/film/brokeback-mountain/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/5/1/9/0/9/51909-brokeback-mountain-0-600-0-900-crop.jpg?v=40ad2b59a0"
     }
   ]
 }

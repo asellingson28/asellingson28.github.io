@@ -1,0 +1,335 @@
+---
+import { getCollection, render } from "astro:content";
+import { Image } from "astro:assets";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Quote from "../components/Quote.astro";
+
+const roles = await getCollection("career");
+const sorted = roles.sort((a, b) =>
+  b.data.startDate.localeCompare(a.data.startDate),
+);
+const history = await Promise.all(
+  sorted.map(async (entry) => ({
+    entry,
+    Content: (await render(entry)).Content,
+  })),
+);
+
+// startDate/endDate are "YYYY-MM" strings (see src/content.config.ts)
+const fmtMonth = (ym: string) => {
+  const [y, m] = ym.split("-").map(Number);
+  return new Date(Date.UTC(y, (m || 1) - 1, 1)).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
+};
+const fmtRange = (start: string, end?: string) =>
+  `${fmtMonth(start)} – ${end ? fmtMonth(end) : "Present"}`;
+---
+
+<BaseLayout
+  title="Working"
+  description="My résumé, professional background, and work history."
+>
+  <span class="mono-label">index / 01</span>
+  <h1>Working</h1>
+  <p class="lede">A résumé, a bit about me, and a brief history.</p>
+
+  <section class="intro-row">
+    <div class="resume-panel">
+      <span class="mono-label section-label">résumé</span>
+      <div class="resume-window">
+        <iframe
+          src="https://asellingson28.github.io/resume/ArjanEllingsonResume.pdf#toolbar=0&navpanes=0"
+          title="Arjan Ellingson's résumé"
+          loading="lazy"></iframe>
+      </div>
+      <a
+        class="resume-link mono-label"
+        href="https://asellingson28.github.io/resume/ArjanEllingsonResume.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        open full résumé ↗
+      </a>
+    </div>
+
+    <div class="about-panel">
+      <span class="mono-label section-label">about</span>
+      <p>
+        I've always been passionate about figuring out how technology can help
+        us create better versions of ourselves. Whether this includes
+        productivity tools, avoiding certain pitfalls, or creating quality of
+        life improvement, I enjoy creating tools (not limited to software) that
+        help people live better, deeper, and more introspective lives.
+      </p>
+      <br />
+      <p>
+        This philosophy has guided my career, from education to defense and
+        wherever the future leads me. My current work as a textbook developer
+        for Kontinua has inspired me to continue creating tools that help those
+        in need find resources and support. At Redwire, I have been able to
+        alter processes that affect the entire company for the better. On my own
+        time, I have reorganized my own life to be more efficient and minimize
+        distractions around me. Those habits shape how I tackle new problems
+        and collaborate with others to deliver practical, lasting solutions.
+      </p>
+      <Quote cite="— Søren Kierkegaard">
+        Life can only be understood backwards; but it must be lived forwards.
+      </Quote>
+    </div>
+  </section>
+
+
+  <section class="history">
+    <h2 class="mono-label section-label">
+      experience / {String(history.length).padStart(2, "0")}
+    </h2>
+
+    {
+      history.length === 0 && (
+        <p class="empty-state">
+          No entries yet — add a markdown file to{" "}
+          <code>src/content/career/</code> (see the schema in{" "}
+          <code>src/content.config.ts</code>).
+        </p>
+      )
+    }
+
+    <ul class="history-list">
+      {
+        history.map(({ entry, Content }) => (
+          <li class="history-item">
+            {entry.data.logo && (
+              <Image
+                src={entry.data.logo}
+                alt={`${entry.data.company} logo`}
+                width={56}
+                height={56}
+                class="history-logo"
+              />
+            )}
+            <div class="history-main">
+              <div class="history-head">
+                <h3 class="history-role">{entry.data.role}</h3>
+                <span class="history-company">
+                  {entry.data.companyUrl ? (
+                    <a
+                      href={entry.data.companyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {entry.data.company}
+                    </a>
+                  ) : (
+                    entry.data.company
+                  )}
+                </span>
+              </div>
+              <div class="mono-label history-meta">
+                <span>
+                  {fmtRange(entry.data.startDate, entry.data.endDate)}
+                </span>
+                {entry.data.location && <span>{entry.data.location}</span>}
+              </div>
+              <div class="prose">
+                <Content />
+              </div>
+              {entry.data.tags && entry.data.tags.length > 0 && (
+                <ul class="tag-list">
+                  {entry.data.tags.map((tag) => (
+                    <li class="tag">{tag}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .lede {
+    color: var(--color-text-dim);
+  }
+  .section-label {
+    color: var(--color-gold);
+    border-bottom: 1px solid var(--color-line);
+    padding-bottom: var(--space-1);
+    margin: 0 0 var(--space-3);
+    font-size: 0.7rem;
+    font-weight: 400;
+    display: block;
+  }
+  section {
+    margin-top: var(--space-4);
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--color-bg-inset);
+    padding: 0.1rem 0.3rem;
+    border-radius: 2px;
+  }
+
+  /* résumé + about, side by side */
+  .intro-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .resume-panel {
+    flex: 0 0 360px;
+  }
+  .resume-window {
+    border: 1px solid var(--color-line);
+    background: var(--color-bg-inset);
+    padding: 6px;
+    aspect-ratio: 8.5 / 11;
+  }
+  .resume-window iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: 0;
+    background: #fff;
+  }
+  .resume-link {
+    display: inline-block;
+    margin-top: var(--space-1);
+    color: var(--color-blue-bright);
+  }
+  .resume-link:hover {
+    color: var(--color-gold-bright);
+  }
+
+  .about-panel {
+    flex: 1 1 320px;
+    min-width: 260px;
+  }
+  .about-panel p {
+    color: var(--color-text-dim);
+    max-width: 60ch;
+  }
+
+  /* career history list */
+  .history-list {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--space-3);
+  }
+  .history-item {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    padding: 1.75rem 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .history-logo {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border: 1px solid var(--color-line);
+    background: #fff;
+  }
+  .history-main {
+    flex: 1;
+    min-width: 0;
+  }
+  .history-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .history-role {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 400;
+    color: var(--color-text);
+    margin: 0;
+  }
+  .history-company {
+    color: var(--color-blue-bright);
+    font-size: 0.95rem;
+  }
+  .history-company a:hover {
+    color: var(--color-gold-bright);
+  }
+  .history-meta {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.3rem;
+  }
+
+  .prose {
+    margin-top: 0.6rem;
+    max-width: 65ch;
+  }
+  .prose :global(p) {
+    margin: 0 0 0.6rem;
+    color: var(--color-text-dim);
+  }
+  .prose :global(ul) {
+    margin: 0 0 0.6rem;
+    padding-left: 1.2rem;
+    color: var(--color-text-dim);
+  }
+  .prose :global(li) {
+    margin: 0.2rem 0;
+  }
+  .prose :global(a) {
+    color: var(--color-blue-bright);
+  }
+  .prose :global(a:hover) {
+    color: var(--color-gold-bright);
+  }
+
+  .tag-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0;
+    margin: 0.5rem 0 0;
+  }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    border: 1px solid var(--color-gold);
+    border-radius: 9999px;
+    padding: 0.2rem 0.75rem;
+    line-height: 1;
+  }
+
+  .empty-state {
+    color: var(--color-text-dim);
+    margin-top: var(--space-3);
+  }
+
+  @media (max-width: 640px) {
+    .intro-row {
+      flex-direction: column;
+    }
+    .resume-panel {
+      flex: 1 1 100%;
+      width: 100%;
+      max-width: 260px;
+    }
+    .history-item {
+      flex-direction: column;
+    }
+  }
+</style>

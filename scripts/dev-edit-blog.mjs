@@ -7,9 +7,24 @@
 // POST /__edit-blog/image?slug=<slug>&name=<filename>  (raw image body)
 //   saves the post's cover photo as <slug>-cover.<ext> next to the .md file
 //   and sets its `cover:` frontmatter line
+// POST /__edit-blog/preview { title, description?, tags?, coverCaption?, body }
+//   renders the not-yet-saved fields through the same markdown pipeline the
+//   real site uses (title/description/tags/coverCaption via inline-markdown.mjs,
+//   body via @astrojs/markdown-remark + the site's remark plugins) so the
+//   preview can't silently drift from what the built post will look like
 // NOTE: loaded once at dev-server startup — restart `npm run dev` after edits.
 import fs from 'node:fs';
 import path from 'node:path';
+import { createMarkdownProcessor } from '@astrojs/markdown-remark';
+import remarkFootnoteTitles from './remark-footnote-titles.mjs';
+import { renderInlineMarkdown } from '../src/lib/inline-markdown.mjs';
+
+// created lazily (it's not free) and reused across preview requests
+let processorPromise;
+function getMarkdownProcessor() {
+  if (!processorPromise) processorPromise = createMarkdownProcessor({ remarkPlugins: [remarkFootnoteTitles] });
+  return processorPromise;
+}
 
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
 const FM_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
@@ -70,6 +85,37 @@ export function blogEditHandler({ dir = path.resolve('src/content/blog') } = {})
         setLine(lines, 'cover', `./${slug}-cover${ext}`);
         fs.writeFileSync(mdFile, `---\n${lines.join('\n')}\n---\n${m[2]}`);
         reply(200, { file: path.relative(process.cwd(), file) });
+      });
+      return;
+    }
+
+    if (url.pathname === '/preview') {
+      let raw = '';
+      req.on('data', (chunk) => (raw += chunk));
+      req.on('end', async () => {
+        let p;
+        try {
+          p = JSON.parse(raw);
+        } catch {
+          return reply(400, { error: 'invalid JSON' });
+        }
+        const tags = String(p.tags ?? '')
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+        try {
+          const processor = await getMarkdownProcessor();
+          const { code: bodyHtml } = await processor.render(String(p.body ?? ''));
+          reply(200, {
+            titleHtml: renderInlineMarkdown(String(p.title ?? '')),
+            descriptionHtml: p.description ? renderInlineMarkdown(String(p.description)) : '',
+            tagsHtml: tags.map((t) => renderInlineMarkdown(t)),
+            coverCaptionHtml: p.coverCaption ? renderInlineMarkdown(String(p.coverCaption)) : '',
+            bodyHtml,
+          });
+        } catch (err) {
+          reply(500, { error: err instanceof Error ? err.message : 'preview failed' });
+        }
       });
       return;
     }
