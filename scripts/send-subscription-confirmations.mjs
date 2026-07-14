@@ -1,4 +1,4 @@
-import { EMAIL_THEME, createTransporter, maskEmail, renderEmailCard } from './lib/mail-theme.mjs';
+import { SITE_DOMAIN, EMAIL_THEME, createTransporter, maskEmail, renderEmailCard } from './lib/mail-theme.mjs';
 
 const dryRun = process.argv.slice(2).includes('--dry-run');
 
@@ -40,7 +40,7 @@ function confirmationEmail({ email, token }, from, replyTo) {
     replyTo,
     subject: 'Confirm your subscription',
     text: [
-      'Someone (hopefully you) asked to subscribe this address to new posts on asellingson28.github.io.',
+      `Someone (hopefully you) asked to subscribe this address to new posts on ${SITE_DOMAIN}.`,
       '',
       `Confirm here: ${confirmUrl}`,
       '',
@@ -49,7 +49,7 @@ function confirmationEmail({ email, token }, from, replyTo) {
     html: renderEmailCard({
       eyebrow: '03 / writing · confirm subscription',
       title: 'Confirm your subscription',
-      bodyHtml: `<p style="margin:0;font-family:${EMAIL_THEME.fontBody};font-size:15px;line-height:1.6;color:${EMAIL_THEME.textDim};">Someone (hopefully you) asked to subscribe this address to new posts on asellingson28.github.io. Nothing is added to the list until you confirm below.</p>`,
+      bodyHtml: `<p style="margin:0;font-family:${EMAIL_THEME.fontBody};font-size:15px;line-height:1.6;color:${EMAIL_THEME.textDim};">Someone (hopefully you) asked to subscribe this address to new posts on ${SITE_DOMAIN}. Nothing is added to the list until you confirm below.</p>`,
       cta: { href: confirmUrl.toString(), label: 'Confirm subscription →' },
       footerHtml: "if this wasn't you, ignore this email — nothing is added without the link above",
     }),

@@ -161,6 +161,76 @@ async function fetchContributionCalendar() {
   };
 }
 
+// Repos owned by someone else that the user has contributed real code to —
+// GitHub's own profile page surfaces the same list. Also GraphQL-only, so it
+// shares fetchContributionCalendar's token/fallback story above.
+// `contributionTypes: [COMMIT, PULL_REQUEST]` is a proxy for "substantial
+// contribution" (as opposed to just opening an issue or leaving a PR review)
+// since the API has no numeric "how much did I contribute" field to filter on.
+// GH_CONTRIB_TOKEN typically carries the `repo` scope (needed for the private
+// contribution counts in the calendar above), so this query — unlike the
+// unauthenticated REST call in fetchGithubRepos — can see private repos the
+// user has access to. isPrivate is filtered out below; this snapshot is
+// committed to the repo and rendered on the public site, so a private repo
+// name/description/link must never end up in it.
+async function fetchContributedRepos() {
+  if (!process.env.GH_CONTRIB_TOKEN) {
+    console.log('contributed repos: GH_CONTRIB_TOKEN not set, skipping');
+    return null;
+  }
+  const query = `
+    query($login: String!) {
+      user(login: $login) {
+        repositoriesContributedTo(
+          first: 100
+          includeUserRepositories: false
+          contributionTypes: [COMMIT, PULL_REQUEST]
+          orderBy: { field: PUSHED_AT, direction: DESC }
+        ) {
+          nodes {
+            name
+            owner { login }
+            description
+            url
+            homepageUrl
+            primaryLanguage { name }
+            stargazerCount
+            isFork
+            isArchived
+            isPrivate
+            pushedAt
+          }
+        }
+      }
+    }`;
+  const res = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      Authorization: `bearer ${process.env.GH_CONTRIB_TOKEN}`,
+      'Content-Type': 'application/json',
+      'User-Agent': 'asellingson28.github.io media snapshot (arjan.ellingson@gmail.com)',
+    },
+    body: JSON.stringify({ query, variables: { login: GITHUB_USER } }),
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for GitHub contributed repos`);
+  const json = await res.json();
+  if (json.errors) throw new Error(`GitHub GraphQL error: ${json.errors.map((e) => e.message).join('; ')}`);
+  // forks and archived repos are noise here too (mirrors fetchGithubRepos);
+  // private repos are excluded outright — see the note above
+  return json.data.user.repositoriesContributedTo.nodes
+    .filter((r) => !r.isFork && !r.isArchived && !r.isPrivate)
+    .map((r) => ({
+      name: r.name,
+      owner: r.owner.login,
+      description: r.description,
+      link: r.url,
+      homepage: r.homepageUrl || null,
+      language: r.primaryLanguage?.name ?? null,
+      stars: r.stargazerCount,
+      pushedAt: toIsoDate(r.pushedAt),
+    }));
+}
+
 // --- Letterboxd --------------------------------------------------------
 
 function parseFilm(item) {
@@ -353,16 +423,25 @@ function writeSnapshot(file, data) {
 
 const fetchedAt = new Date().toISOString();
 
-const [read, currentlyReading, toRead, rawFilms, { favorites, watchlist, diaryPosters }, repos, fetchedCalendar] =
-  await Promise.all([
-    fetchShelf('read'),
-    fetchShelf('currently-reading'),
-    fetchShelf('to-read'),
-    fetchFilms(),
-    fetchFavoritesAndWatchlist(),
-    fetchGithubRepos(),
-    fetchContributionCalendar(),
-  ]);
+const [
+  read,
+  currentlyReading,
+  toRead,
+  rawFilms,
+  { favorites, watchlist, diaryPosters },
+  repos,
+  fetchedCalendar,
+  fetchedContributedRepos,
+] = await Promise.all([
+  fetchShelf('read'),
+  fetchShelf('currently-reading'),
+  fetchShelf('to-read'),
+  fetchFilms(),
+  fetchFavoritesAndWatchlist(),
+  fetchGithubRepos(),
+  fetchContributionCalendar(),
+  fetchContributedRepos(),
+]);
 
 const byRecency = (a, b) => (b.readAt ?? b.addedAt ?? '').localeCompare(a.readAt ?? a.addedAt ?? '');
 read.sort(byRecency);
@@ -374,14 +453,17 @@ const films = rawFilms.map(({ viewingId, ...film }) => {
   return custom ? { ...film, poster: custom } : film;
 });
 
-// fetchContributionCalendar returns null when no token is configured — keep
-// whatever was last committed rather than wiping it out.
-let contributions = fetchedCalendar;
-if (!contributions) {
+// fetchContributionCalendar/fetchContributedRepos return null when no token
+// is configured — keep whatever was last committed rather than wiping it out.
+const previousGithub = (() => {
   try {
-    contributions = JSON.parse(readFileSync(dataDir + 'github.json', 'utf8')).contributions ?? null;
-  } catch {}
-}
+    return JSON.parse(readFileSync(dataDir + 'github.json', 'utf8'));
+  } catch {
+    return null;
+  }
+})();
+const contributions = fetchedCalendar ?? previousGithub?.contributions ?? null;
+const contributedRepos = fetchedContributedRepos ?? previousGithub?.contributedRepos ?? [];
 
 // The favorites/watchlist poster resolution races Letterboxd's Cloudflare JS
 // challenge (see fetchFavorites/fetchWatchlist) — it's more prone to timing
@@ -406,7 +488,7 @@ writeSnapshot('letterboxd.json', {
   favorites: backfillPosters(favorites, previousLetterboxd?.favorites),
   watchlist: backfillPosters(watchlist, previousLetterboxd?.watchlist),
 });
-writeSnapshot('github.json', { fetchedAt, username: GITHUB_USER, repos, contributions });
+writeSnapshot('github.json', { fetchedAt, username: GITHUB_USER, repos, contributions, contributedRepos });
 console.log(
-  `${read.length} read, ${currentlyReading.length} currently reading, ${toRead.length} to read, ${films.length} films, ${favorites.length} favorites, ${watchlist.length} watchlist, ${repos.length} repos`
+  `${read.length} read, ${currentlyReading.length} currently reading, ${toRead.length} to read, ${films.length} films, ${favorites.length} favorites, ${watchlist.length} watchlist, ${repos.length} repos, ${contributedRepos.length} contributed repos`
 );

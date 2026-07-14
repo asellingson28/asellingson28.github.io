@@ -1,16 +1,16 @@
 {
-  "fetchedAt": "2026-07-13T19:28:34.195Z",
+  "fetchedAt": "2026-07-14T19:40:32.652Z",
   "username": "asellingson28",
   "repos": [
     {
       "name": "asellingson28.github.io",
       "description": "My website containing a portfolio of a variety of projects. E2E tested with Playwright.",
       "link": "https://github.com/asellingson28/asellingson28.github.io",
-      "homepage": "http://asellingson28.github.io/",
+      "homepage": "http://aselling.us/",
       "language": "Astro",
       "stars": 0,
       "topics": [],
-      "pushedAt": "2026-07-13"
+      "pushedAt": "2026-07-14"
     },
     {
       "name": "resume",
@@ -20,7 +20,7 @@
       "language": "TeX",
       "stars": 0,
       "topics": [],
-      "pushedAt": "2026-07-02"
+      "pushedAt": "2026-07-14"
     },
     {
       "name": "csc-308-app",
@@ -84,7 +84,7 @@
     }
   ],
   "contributions": {
-    "total": 1361,
+    "total": 1368,
     "days": [
       {
         "date": "2025-07-13",
@@ -1548,8 +1548,54 @@
       },
       {
         "date": "2026-07-13",
-        "count": 0
+        "count": 4
+      },
+      {
+        "date": "2026-07-14",
+        "count": 3
       }
     ]
-  }
+  },
+  "contributedRepos": [
+    {
+      "name": "sequence",
+      "owner": "KontinuaFoundation",
+      "description": "These are the materials for a four year course on math, physics, and computer programming",
+      "link": "https://github.com/KontinuaFoundation/sequence",
+      "homepage": "https://readers.kontinua.org/",
+      "language": "TeX",
+      "stars": 10,
+      "pushedAt": "2026-07-09"
+    },
+    {
+      "name": "kontinuafoundation.github.io",
+      "owner": "KontinuaFoundation",
+      "description": "Website for the sequence",
+      "link": "https://github.com/KontinuaFoundation/kontinuafoundation.github.io",
+      "homepage": "https://kontinuafoundation.github.io/",
+      "language": "Svelte",
+      "stars": 2,
+      "pushedAt": "2026-07-09"
+    },
+    {
+      "name": "Ross-Resume",
+      "owner": "ross-poletti",
+      "description": null,
+      "link": "https://github.com/ross-poletti/Ross-Resume",
+      "homepage": null,
+      "language": "TeX",
+      "stars": 0,
+      "pushedAt": "2026-02-16"
+    },
+    {
+      "name": "Room8",
+      "owner": "The-Landlords",
+      "description": null,
+      "link": "https://github.com/The-Landlords/Room8",
+      "homepage": null,
+      "language": "TypeScript",
+      "stars": 1,
+      "pushedAt": "2026-06-09"
+    }
+  ]
 }

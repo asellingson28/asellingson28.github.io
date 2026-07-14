@@ -1,6 +1,6 @@
 ---
 name: "Front Porch"
-kind: travel
+kind: third-place
 coords: [35.29751, -120.66106]
 detail: "home away from home"
 ---

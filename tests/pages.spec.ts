@@ -59,5 +59,5 @@ test('places map renders with the legend', async ({ page }) => {
   await page.goto('/travels');
   await expect(page.locator('#map.leaflet-container')).toBeVisible();
   await expect(page.locator('.map-legend')).toBeVisible();
-  await expect(page.getByRole('group', { name: 'Filter map markers' }).getByRole('checkbox')).toHaveCount(4);
+  await expect(page.getByRole('group', { name: 'Filter map markers' }).getByRole('checkbox')).toHaveCount(5);
 });

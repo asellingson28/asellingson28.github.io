@@ -3,7 +3,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import github from '../../data/github.json';
 
 // snapshot written by `npm run fetch:media`; fetchedAt only changes when the repo list does
+// contributedRepos may be absent on an older snapshot written before this field existed
 const { repos, contributions } = github;
+const contributedRepos = github.contributedRepos ?? [];
 const profileUrl = `https://github.com/${github.username}`;
 const updated = github.fetchedAt.slice(0, 16).replace('T', ' · ') + ' utc';
 
@@ -107,6 +109,33 @@ const monthOf = (week: { date: string }[]) => week[0].date.slice(0, 7);
     </ul>
   </section>
 
+  {contributedRepos.length > 0 && (
+    <section>
+      <h2 class="mono-label section-label">contributed to / {String(contributedRepos.length).padStart(2, '0')}</h2>
+      <ul class="repo-list">
+        {contributedRepos.map((repo) => (
+          <li class="repo">
+            <div class="repo-head">
+              <a class="repo-name" href={repo.link} target="_blank" rel="noopener noreferrer">{repo.owner}/{repo.name}</a>
+              <span class="repo-head-right">
+                {repo.homepage && (
+                  <a class="repo-live mono-label" href={repo.homepage} target="_blank" rel="noopener noreferrer">live →</a>
+                )}
+                <span class="mono-label contributor-badge">contributor</span>
+              </span>
+            </div>
+            {repo.description && <p class="repo-desc">{repo.description}</p>}
+            <span class="mono-label repo-row">
+              {repo.language && <span class="repo-lang">{repo.language}</span>}
+              {repo.stars > 0 && <span>★ {repo.stars}</span>}
+              {repo.pushedAt && <span>pushed / {fmtDate(repo.pushedAt)}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
   <footer class="data-footer">
     <span class="mono-label">source / github api</span>
     <span class="mono-label">most recent update / {updated}</span>
@@ -208,18 +237,33 @@ const monthOf = (week: { date: string }[]) => week[0].date.slice(0, 7);
 
   .repo-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: var(--space-2);
+    gap: 0.3rem var(--space-2);
   }
   .repo-name {
     font-family: var(--font-display);
     font-size: 1rem;
     color: var(--color-text);
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .repo-name:hover { color: var(--color-gold-bright); }
   .repo-live { color: var(--color-blue-bright); flex-shrink: 0; }
   .repo-live:hover { color: var(--color-gold-bright); }
+
+  .repo-head-right {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-shrink: 0;
+  }
+  .contributor-badge {
+    color: var(--color-blue-bright);
+    border: 1px solid var(--color-blue-bright);
+    padding: 0.1rem 0.4rem;
+  }
 
   .repo-desc {
     margin: 0;
