@@ -75,7 +75,7 @@ jobs:
           MAIL_UNSUBSCRIBE: ${{ secrets.MAIL_UNSUBSCRIBE }}
           WORKER_URL: ${{ vars.WORKER_URL }}
           SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
-          SITE_URL: https://asellingson28.github.io
+          SITE_URL: https://aselling.us
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             npm run notify:blog -- "${{ github.event.inputs.notify_file }}" ${{ github.event.inputs.notify_dry_run == 'true' && '--dry-run' || '' }}

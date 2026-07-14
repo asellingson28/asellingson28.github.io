@@ -4,7 +4,7 @@ import rehypeImageCaptions from './scripts/rehype-image-captions.mjs';
 import devAddPlace from './scripts/dev-add-place.mjs';
 
 export default defineConfig({
-  site: 'https://asellingson28.github.io',
+  site: 'https://aselling.us',
   markdown: {
     remarkPlugins: [remarkFootnoteTitles],
     rehypePlugins: [rehypeImageCaptions],

@@ -12,7 +12,7 @@ import {
 } from './lib/mail-theme.mjs';
 
 const BLOG_DIR = 'src/content/blog';
-const DEFAULT_SITE_URL = 'https://asellingson28.github.io';
+const DEFAULT_SITE_URL = 'https://aselling.us';
 const ZERO_SHA = /^0+$/;
 
 const args = process.argv.slice(2);
