@@ -1,6 +1,6 @@
 ---
 name: "Palm Theatre"
-kind: event
+kind: third-place
 coords: [35.28154, -120.66379]
 detail: "third space"
 ---

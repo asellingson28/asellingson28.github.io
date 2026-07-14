@@ -36,6 +36,7 @@ const devJson = import.meta.env.DEV
   <span class="mono-label">index / 03</span>
   <div class="title-row">
     <h1>Writing</h1>
+    <p class="lede">A collection of critiques, thoughts, and journaling. Often pulled straight from my obsidian vault.</p>
     {import.meta.env.DEV && (
       <button id="new-post" class="dev-btn mono-label" type="button" title="Dev only: writes src/content/blog/<slug>.md">+ new post</button>
     )}
@@ -131,6 +132,10 @@ const devJson = import.meta.env.DEV
               <input type="file" name="cover" accept="image/*" />
             </label>
             <input name="coverCaption" placeholder="Cover caption / credit (markdown ok)" value="${esc(p?.coverCaption ?? '')}" />
+            <label class="mono-label insert-image-label" title="${p ? 'Upload an image and insert it into the body at the cursor' : 'Save the post once first to enable inserting images'}">
+              + insert image
+              <input type="file" id="insert-image-input" accept="image/*" ${p ? '' : 'disabled'} />
+            </label>
             <textarea name="body" rows="16" placeholder="Body (markdown)">${esc(p?.body ?? '')}</textarea>
             <div class="row">
               <button type="submit">save post</button>
@@ -150,6 +155,13 @@ const devJson = import.meta.env.DEV
 
       document.getElementById('post-cancel')?.addEventListener('click', () => dialog.close());
 
+      // the /preview endpoint runs a bare markdown processor with no asset
+      // pipeline, so it can't resolve the relative paths inline images are
+      // saved under — swap in blob URLs (from the still-in-memory Files) for
+      // whatever this editing session has uploaded, purely for live preview;
+      // the real page resolves the on-disk path correctly once saved
+      const insertedImages = new Map<string, string>();
+
       const updatePreview = async () => {
         const fd = new FormData(formEl);
         const res = await fetch('/__edit-blog/preview', {
@@ -168,7 +180,10 @@ const devJson = import.meta.env.DEV
           alert(`Could not build preview: ${error}`);
           return;
         }
-        const { titleHtml, descriptionHtml, tagsHtml, coverCaptionHtml, bodyHtml }: PreviewResponse = await res.json();
+        let { titleHtml, descriptionHtml, tagsHtml, coverCaptionHtml, bodyHtml }: PreviewResponse = await res.json();
+        for (const [imgPath, blobUrl] of insertedImages) {
+          bodyHtml = bodyHtml.split(`src="${imgPath}"`).join(`src="${blobUrl}"`);
+        }
         const cover = fd.get('cover') as File | null;
         const coverSrc = cover && cover.size > 0 ? URL.createObjectURL(cover) : null;
         const dateStr = String(fd.get('date') ?? '');
@@ -194,6 +209,37 @@ const devJson = import.meta.env.DEV
 
       document.getElementById('post-preview-refresh')?.addEventListener('click', () => updatePreview());
       updatePreview();
+
+      document.getElementById('insert-image-input')?.addEventListener('change', async (ev) => {
+        const input = ev.currentTarget as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file || !p) return;
+        const res = await fetch(
+          `/__edit-blog/content-image?slug=${encodeURIComponent(p.id)}&name=${encodeURIComponent(file.name)}`,
+          { method: 'POST', body: file }
+        );
+        input.value = '';
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({ error: res.statusText }));
+          alert(`Could not upload image: ${error}`);
+          return;
+        }
+        const { path: imgPath } = await res.json();
+        insertedImages.set(imgPath, URL.createObjectURL(file));
+        const body = formEl.elements.namedItem('body') as HTMLTextAreaElement;
+        const start = body.selectionStart ?? body.value.length;
+        const end = body.selectionEnd ?? body.value.length;
+        // markdown's image "title" doubles as a caption (rendered as a
+        // <figcaption> — see rehype-image-captions.mjs); plain text only, no
+        // nested markdown formatting
+        const caption = window.prompt('Caption (optional, shown below the image):', '')?.trim();
+        const markdown = caption ? `![](${imgPath} "${caption.replace(/"/g, '\\"')}")` : `![](${imgPath})`;
+        body.value = body.value.slice(0, start) + markdown + body.value.slice(end);
+        const cursor = start + markdown.length;
+        body.focus();
+        body.setSelectionRange(cursor, cursor);
+        updatePreview();
+      });
 
       document.getElementById('post-form')?.addEventListener('submit', async (ev) => {
         ev.preventDefault();
@@ -377,6 +423,18 @@ const devJson = import.meta.env.DEV
   .post-editor .draft-toggle { display: flex; gap: 0.4rem; align-items: center; cursor: pointer; }
   .post-editor .cover-label { display: grid; gap: 0.25rem; }
   .post-editor input[type='file'] { border-style: dashed; }
+  .post-editor .insert-image-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: fit-content;
+    border: 1px dashed var(--color-line-bright);
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+  }
+  .post-editor .insert-image-label:hover { color: var(--color-gold-bright); border-color: var(--color-gold); }
+  .post-editor .insert-image-label:has(input:disabled) { opacity: 0.5; cursor: default; }
+  .post-editor .insert-image-label input[type='file'] { display: none; }
   .post-editor button[type='submit'] {
     background: var(--color-gold);
     border: none;
@@ -447,4 +505,19 @@ const devJson = import.meta.env.DEV
   .post-preview .post-desc { color: var(--color-text-dim); margin-top: 0.6rem; }
   .post-preview .prose { margin-top: var(--space-3); }
   .post-preview .prose p { color: var(--color-text); margin: 0.8rem 0; }
+  .post-preview .prose img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: var(--space-3) auto;
+    border: 1px solid var(--color-line);
+  }
+  .post-preview .prose figure { margin: var(--space-3) auto; }
+  .post-preview .prose figure img { margin: 0; }
+  .post-preview .prose figcaption {
+    margin-top: 0.4rem;
+    text-align: center;
+    text-transform: none;
+    letter-spacing: 0.04em;
+  }
 </style>

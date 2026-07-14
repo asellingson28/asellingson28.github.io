@@ -28,7 +28,7 @@ const places = defineCollection({
     z
       .object({
         name: z.string(),
-        kind: z.enum(['event', 'travel', 'lived', 'want-to-go']),
+        kind: z.enum(['event', 'travel', 'lived', 'want-to-go', 'third-place']),
         location: z.string().optional(),
         coords: z.tuple([z.number(), z.number()]).optional(),
         date: z.string().optional(),

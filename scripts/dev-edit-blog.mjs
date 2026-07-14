@@ -7,6 +7,14 @@
 // POST /__edit-blog/image?slug=<slug>&name=<filename>  (raw image body)
 //   saves the post's cover photo as <slug>-cover.<ext> next to the .md file
 //   and sets its `cover:` frontmatter line
+// POST /__edit-blog/content-image?slug=<slug>&name=<filename>  (raw image body)
+//   saves an inline body photo as <slug>-<name>.<ext> next to the .md file
+//   (never overwrites — numbered if that name is taken) and returns its path
+//   for the client to insert as `![](path "optional caption")`; Astro optimizes
+//   any relative image path referenced from a content-collection markdown body
+//   on its own, same as the cover image, so no frontmatter/schema changes are
+//   needed — the optional "caption" (markdown's image title syntax) is turned
+//   into a <figcaption> by rehype-image-captions.mjs
 // POST /__edit-blog/preview { title, description?, tags?, coverCaption?, body }
 //   renders the not-yet-saved fields through the same markdown pipeline the
 //   real site uses (title/description/tags/coverCaption via inline-markdown.mjs,
@@ -17,12 +25,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 import remarkFootnoteTitles from './remark-footnote-titles.mjs';
+import rehypeImageCaptions from './rehype-image-captions.mjs';
 import { renderInlineMarkdown } from '../src/lib/inline-markdown.mjs';
 
 // created lazily (it's not free) and reused across preview requests
 let processorPromise;
 function getMarkdownProcessor() {
-  if (!processorPromise) processorPromise = createMarkdownProcessor({ remarkPlugins: [remarkFootnoteTitles] });
+  if (!processorPromise)
+    processorPromise = createMarkdownProcessor({
+      remarkPlugins: [remarkFootnoteTitles],
+      rehypePlugins: [rehypeImageCaptions],
+    });
   return processorPromise;
 }
 
@@ -85,6 +98,28 @@ export function blogEditHandler({ dir = path.resolve('src/content/blog') } = {})
         setLine(lines, 'cover', `./${slug}-cover${ext}`);
         fs.writeFileSync(mdFile, `---\n${lines.join('\n')}\n---\n${m[2]}`);
         reply(200, { file: path.relative(process.cwd(), file) });
+      });
+      return;
+    }
+
+    if (url.pathname === '/content-image') {
+      const slug = slugify(String(url.searchParams.get('slug') ?? ''));
+      const original = path.basename(String(url.searchParams.get('name') ?? 'image'));
+      const ext = path.extname(original).toLowerCase();
+      if (!IMAGE_EXTS.has(ext))
+        return reply(400, { error: `unsupported image type "${ext || 'none'}" (HEIC? convert to jpg first)` });
+      const mdFile = path.join(dir, `${slug}.md`);
+      if (!fs.existsSync(mdFile)) return reply(400, { error: `no post file for slug "${slug}"` });
+
+      const stem = slugify(path.basename(original, path.extname(original))) || 'image';
+      let filename = `${slug}-${stem}${ext}`;
+      for (let n = 2; fs.existsSync(path.join(dir, filename)); n++) filename = `${slug}-${stem}-${n}${ext}`;
+
+      const chunks = [];
+      req.on('data', (c) => chunks.push(c));
+      req.on('end', () => {
+        fs.writeFileSync(path.join(dir, filename), Buffer.concat(chunks));
+        reply(200, { path: `./${filename}` });
       });
       return;
     }

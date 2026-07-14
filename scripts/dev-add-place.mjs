@@ -14,7 +14,7 @@ import path from 'node:path';
 import { blogEditHandler } from './dev-edit-blog.mjs';
 
 const PLACES_DIR = path.resolve('src/content/places');
-const KINDS = ['event', 'travel', 'lived', 'want-to-go'];
+const KINDS = ['event', 'travel', 'lived', 'want-to-go', 'third-place'];
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
 
 const slugify = (s) =>
