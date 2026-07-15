@@ -1,7 +1,18 @@
 {
-  "fetchedAt": "2026-07-14T19:56:29.812Z",
+  "fetchedAt": "2026-07-15T16:15:00.698Z",
   "username": "aselling",
   "films": [
+    {
+      "title": "Sinister",
+      "year": 2012,
+      "link": "https://letterboxd.com/aselling/film/sinister/",
+      "poster": "https://a.ltrbxd.com/resized/sm/upload/e2/ry/mu/yc/hrRYY7FcRc46Ue7h9jcKiW1xqJ3-0-600-0-900-crop.jpg?v=c994fd880e",
+      "rating": null,
+      "liked": true,
+      "rewatch": false,
+      "watchedDate": "2026-07-15",
+      "review": "genuinely one of the most terrifying horrors I have seen in a while. Hokum(2026) definitely took a lot of inspiration from this; I love the way horror directors blend mystery, thrillers, and often a literary aspect. Not a ghost story, not a mystery, not a horror movie, but something derivative of all three. I quite liked the idea of explaining a mystery through a set of old films. Similar to how Weapons used a set of intertwined characters to engage the viewer into the mystery aspect of it. The sound design and use of shadows really kept me on edge too. Only complaint is that the acting from characters outside of Ethan Hawke seemed quite subpar."
+    },
     {
       "title": "Arrival",
       "year": 2016,
@@ -557,126 +568,5 @@
       "poster": "https://a.ltrbxd.com/resized/alternative-poster/1/1/2/5/3/8/3/p/Auo1FtIv7tZYWHR3o31OskGTnh7-0-600-0-900-crop.jpg?v=b7e593870c"
     }
   ],
-  "watchlist": [
-    {
-      "title": "Spider-Man: Into the Spider-Verse",
-      "year": 2018,
-      "link": "https://letterboxd.com/film/spider-man-into-the-spider-verse/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/2/5/1/9/4/3/251943-spider-man-into-the-spider-verse-0-600-0-900-crop.jpg?v=538fe0ada6"
-    },
-    {
-      "title": "Joker",
-      "year": 2019,
-      "link": "https://letterboxd.com/film/joker-2019/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/4/0/6/7/7/5/406775-joker-0-600-0-900-crop.jpg?v=e4ea7f98cc"
-    },
-    {
-      "title": "Spider-Man: Across the Spider-Verse",
-      "year": 2023,
-      "link": "https://letterboxd.com/film/spider-man-across-the-spider-verse/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/4/9/7/6/3/1/497631-spider-man-across-the-spider-verse-0-600-0-900-crop.jpg?v=f2acbf1b8a"
-    },
-    {
-      "title": "The Silence of the Lambs",
-      "year": 1991,
-      "link": "https://letterboxd.com/film/the-silence-of-the-lambs/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/5/1/7/8/2/51782-the-silence-of-the-lambs-0-600-0-900-crop.jpg?v=18d88bdff4"
-    },
-    {
-      "title": "The Shining",
-      "year": 1980,
-      "link": "https://letterboxd.com/film/the-shining/",
-      "poster": "https://a.ltrbxd.com/resized/sm/upload/7s/m2/bw/d0/caoYMcjUamGoBVy65i1AHJBvdzw-0-600-0-900-crop.jpg?v=88d9d6cce4"
-    },
-    {
-      "title": "The Godfather",
-      "year": 1972,
-      "link": "https://letterboxd.com/film/the-godfather/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/5/1/8/1/8/51818-the-godfather-0-600-0-900-crop.jpg?v=bca8b67402"
-    },
-    {
-      "title": "Spider-Man: No Way Home",
-      "year": 2021,
-      "link": "https://letterboxd.com/film/spider-man-no-way-home/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/5/6/0/7/8/7/560787-spider-man-no-way-home-0-600-0-900-crop.jpg?v=a336d4f40c"
-    },
-    {
-      "title": "The Shawshank Redemption",
-      "year": 1994,
-      "link": "https://letterboxd.com/film/the-shawshank-redemption/",
-      "poster": "https://a.ltrbxd.com/resized/sm/upload/7l/hn/46/uz/zGINvGjdlO6TJRu9wESQvWlOKVT-0-600-0-900-crop.jpg?v=8736d1c395"
-    },
-    {
-      "title": "Deadpool & Wolverine",
-      "year": 2024,
-      "link": "https://letterboxd.com/film/deadpool-wolverine/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/4/6/2/8/7/0/462870-deadpool-wolverine-0-600-0-900-crop.jpg?v=1aa778d2c6"
-    },
-    {
-      "title": "Inside Out 2",
-      "year": 2024,
-      "link": "https://letterboxd.com/film/inside-out-2-2024/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/9/2/1/5/7/8/921578-inside-out-2-0-600-0-900-crop.jpg?v=efa25e5cca"
-    },
-    {
-      "title": "Back to the Future",
-      "year": 1985,
-      "link": "https://letterboxd.com/film/back-to-the-future/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/5/1/9/4/5/51945-back-to-the-future-0-600-0-900-crop.jpg?v=b818c8ce28"
-    },
-    {
-      "title": "Pride & Prejudice",
-      "year": 2005,
-      "link": "https://letterboxd.com/film/pride-prejudice/",
-      "poster": "https://a.ltrbxd.com/resized/sm/upload/nq/jo/26/tn/dAC0hkYmz5ZOCHURZCyj9isPMPd-0-600-0-900-crop.jpg?v=b3dac3ffd7"
-    },
-    {
-      "title": "Past Lives",
-      "year": 2023,
-      "link": "https://letterboxd.com/film/past-lives/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/5/9/1/0/5/3/591053-past-lives-0-600-0-900-crop.jpg?v=c600b7854e"
-    },
-    {
-      "title": "No Country for Old Men",
-      "year": 2007,
-      "link": "https://letterboxd.com/film/no-country-for-old-men/",
-      "poster": "https://a.ltrbxd.com/resized/sm/upload/dr/hr/pz/ez/ehLb2SQ3djlA1FrQKbP2WO3VH09-0-600-0-900-crop.jpg?v=6489920a92"
-    },
-    {
-      "title": "Spider-Man: Homecoming",
-      "year": 2017,
-      "link": "https://letterboxd.com/film/spider-man-homecoming/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/2/4/2/7/1/0/242710-spider-man-homecoming-0-600-0-900-crop.jpg?v=61e8c57229"
-    },
-    {
-      "title": "Mamma Mia!",
-      "year": 2008,
-      "link": "https://letterboxd.com/film/mamma-mia/",
-      "poster": "https://a.ltrbxd.com/resized/sm/upload/10/5l/wu/jl/gOm2iMMbC6EonrFzmSQ8xvCa4Ei.jpg-0-600-0-900-crop.jpg?v=e49de6f770"
-    },
-    {
-      "title": "Nope",
-      "year": 2022,
-      "link": "https://letterboxd.com/film/nope/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/6/8/2/5/4/7/682547-nope-0-600-0-900-crop.jpg?v=d6a6158cc3"
-    },
-    {
-      "title": "The Avengers",
-      "year": 2012,
-      "link": "https://letterboxd.com/film/the-avengers-2012/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/3/6/7/7/8/36778-the-avengers-2012-0-600-0-900-crop.jpg?v=d0e2add158"
-    },
-    {
-      "title": "2001: A Space Odyssey",
-      "year": 1968,
-      "link": "https://letterboxd.com/film/2001-a-space-odyssey/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/5/1/9/8/7/51987-2001-a-space-odyssey-0-600-0-900-crop.jpg?v=a69c46a272"
-    },
-    {
-      "title": "Brokeback Mountain",
-      "year": 2005,
-      "link": "https://letterboxd.com/film/brokeback-mountain/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/5/1/9/0/9/51909-brokeback-mountain-0-600-0-900-crop.jpg?v=40ad2b59a0"
-    }
-  ]
+  "watchlist": []
 }
