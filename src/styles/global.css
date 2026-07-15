@@ -224,6 +224,12 @@ button:focus-visible {
   color: var(--color-text-faint);
 }
 
+/* utility: client-side show/hide toggle for filterable/paginated lists.
+   !important is deliberate -- this must always win over a component's own
+   `display` rule (e.g. a flex list item), regardless of selector specificity
+   or Astro's per-component scope class raising that specificity further. */
+.is-hidden { display: none !important; }
+
 .wrap {
   max-width: var(--content-width);
   margin: 0 auto;

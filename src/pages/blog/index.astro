@@ -15,6 +15,21 @@ const posts = allPosts.sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 );
 
+// unique tags, ordered by first appearance across the (already date-sorted)
+// posts; deduped case-insensitively so "Tech" and "tech" don't render as two
+// separate filter pills, but the first-seen casing is kept for display
+const tagOrder: string[] = [];
+const seenTagKeys = new Set<string>();
+for (const post of posts) {
+  for (const tag of post.data.tags ?? []) {
+    const key = tag.toLowerCase();
+    if (!seenTagKeys.has(key)) {
+      seenTagKeys.add(key);
+      tagOrder.push(tag);
+    }
+  }
+}
+
 // raw post data for the dev editor's pre-filled form; never built
 const devJson = import.meta.env.DEV
   ? JSON.stringify(
@@ -44,9 +59,18 @@ const devJson = import.meta.env.DEV
 
   <SubscribeForm />
 
+  {tagOrder.length > 0 && (
+    <ul class="tag-filter" role="list">
+      <li><button type="button" class="tag-filter-btn is-active" data-tag="" aria-pressed="true">all</button></li>
+      {tagOrder.map((tag) => (
+        <li><button type="button" class="tag-filter-btn" data-tag={tag.toLowerCase()} aria-pressed="false" set:html={renderInlineMarkdown(tag)} /></li>
+      ))}
+    </ul>
+  )}
+
   <ul class="post-list">
     {posts.map((post) => (
-      <li>
+      <li data-tags={JSON.stringify((post.data.tags ?? []).map((t) => t.toLowerCase()))}>
         <div class="post-main">
           <a href={`/blog/${post.id}`} set:html={renderInlineMarkdown(post.data.title)} />
           {import.meta.env.DEV && post.data.draft && <span class="draft-badge mono-label">draft</span>}
@@ -63,7 +87,7 @@ const devJson = import.meta.env.DEV
                 <li class="tag" set:html={renderInlineMarkdown(tag)} />
               ))}
               {post.data.tags.length > 3 && (
-                <li class="tag tag-more">+{post.data.tags.length - 3}</li>
+                <li class="tag tag-more" title={post.data.tags.slice(3).map(stripMarkdown).join(', ')}>+{post.data.tags.length - 3}</li>
               )}
             </ul>
           )}
@@ -79,9 +103,38 @@ const devJson = import.meta.env.DEV
   </ul>
 
   {posts.length === 0 && <p style="color: var(--color-text-dim);">No posts yet.</p>}
+  <p id="no-tag-matches" class="mono-label is-hidden" style="color: var(--color-text-dim);" aria-live="polite">No posts with this tag.</p>
 
   {import.meta.env.DEV && <script type="application/json" id="blog-dev-data" set:html={devJson} />}
 </BaseLayout>
+
+<script>
+  // tag filter — always on (not gated by DEV): clicking a tag pill shows only
+  // posts carrying that tag; "all" (the default) clears the filter
+  const filterButtons = document.querySelectorAll<HTMLButtonElement>('.tag-filter-btn');
+  const postItems = document.querySelectorAll<HTMLLIElement>('.post-list > li');
+  const noMatches = document.getElementById('no-tag-matches');
+
+  filterButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.tag ?? '';
+      filterButtons.forEach((b) => {
+        const isActive = b === btn;
+        b.classList.toggle('is-active', isActive);
+        b.setAttribute('aria-pressed', String(isActive));
+      });
+
+      let visible = 0;
+      postItems.forEach((li) => {
+        const tags: string[] = JSON.parse(li.dataset.tags ?? '[]');
+        const show = !tag || tags.includes(tag);
+        li.classList.toggle('is-hidden', !show);
+        if (show) visible += 1;
+      });
+      noMatches?.classList.toggle('is-hidden', visible > 0);
+    });
+  });
+</script>
 
 <script>
   // dev-only blog editor — import.meta.env.DEV is statically false in builds,
@@ -344,6 +397,33 @@ const devJson = import.meta.env.DEV
     gap: var(--space-3);
   }
 
+  .tag-filter {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+    margin: var(--space-4) 0 0;
+  }
+  .tag-filter-btn {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: none;
+    color: var(--color-gold);
+    border: 1px solid var(--color-gold);
+    border-radius: 9999px;
+    padding: 0.2rem 0.75rem;
+    line-height: 1.4;
+    cursor: pointer;
+  }
+  .tag-filter-btn:hover { color: var(--color-gold-bright); border-color: var(--color-gold-bright); }
+  .tag-filter-btn.is-active {
+    background: var(--color-gold);
+    color: var(--color-bg);
+  }
+
   .post-list {
     list-style: none;
     padding: 0;
@@ -414,6 +494,7 @@ const devJson = import.meta.env.DEV
     color: var(--color-gold);
     border-color: var(--color-gold);
     opacity: 0.5;
+    cursor: help;
   }
 
   .draft-badge {

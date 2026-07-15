@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import goodreads from '../data/goodreads.json';
 import Quote from '../components/Quote.astro';
+import BookGrid from '../components/BookGrid.astro';
 
 // snapshot written by `npm run fetch:media`; fetchedAt only changes when the shelf does
 const { currentlyReading, toRead, read } = goodreads;
@@ -19,6 +20,8 @@ const fmtDate = (iso: string | null) =>
         timeZone: 'UTC',
       })
     : null;
+
+const PAGE_SIZE = 21;
 ---
 <BaseLayout title="Reading" description="Books I've read, pulled from my Goodreads shelves.">
   <span class="mono-label">index / 04</span>
@@ -57,25 +60,7 @@ const fmtDate = (iso: string | null) =>
       read / {String(read.length).padStart(2, '0')}
       <a class="shelf-link" href={readShelfUrl} target="_blank" rel="noopener noreferrer">view on Goodreads →</a>
     </h2>
-    <ul class="book-grid">
-      {read.map((book) => (
-        <li class="book">
-          <a href={book.link} target="_blank" rel="noopener noreferrer">
-            {book.cover && <img class="book-cover" src={book.cover} alt={`Cover of ${book.title}`} loading="lazy" referrerpolicy="no-referrer" />}
-          </a>
-          <a class="book-title" href={book.link} target="_blank" rel="noopener noreferrer">{book.title}</a>
-          <span class="book-author">{book.author}</span>
-          <span class="mono-label book-row">
-            {book.rating > 0 && (
-              <span class="stars" aria-label={`Rated ${book.rating} of 5`}>
-                {'★'.repeat(book.rating)}<span class="stars-empty">{'★'.repeat(5 - book.rating)}</span>
-              </span>
-            )}
-            {book.readAt && <span>{fmtDate(book.readAt)}</span>}
-          </span>
-        </li>
-      ))}
-    </ul>
+    <BookGrid books={read} gridId="read-grid" paginationLabel="Read shelf pages" pageSize={PAGE_SIZE} showMeta fmtDate={fmtDate} />
   </section>
 
   {toRead.length > 0 && (
@@ -84,17 +69,7 @@ const fmtDate = (iso: string | null) =>
         want to read / {String(toRead.length).padStart(2, '0')}
         <a class="shelf-link" href={toReadShelfUrl} target="_blank" rel="noopener noreferrer">view on Goodreads →</a>
       </h2>
-      <ul class="book-grid">
-        {toRead.map((book) => (
-          <li class="book">
-            <a href={book.link} target="_blank" rel="noopener noreferrer">
-              {book.cover && <img class="book-cover" src={book.cover} alt={`Cover of ${book.title}`} loading="lazy" referrerpolicy="no-referrer" />}
-            </a>
-            <a class="book-title" href={book.link} target="_blank" rel="noopener noreferrer">{book.title}</a>
-            <span class="book-author">{book.author}</span>
-          </li>
-        ))}
-      </ul>
+      <BookGrid books={toRead} gridId="toread-grid" paginationLabel="Want to read shelf pages" pageSize={PAGE_SIZE} />
     </section>
   )}
 
@@ -161,28 +136,6 @@ const fmtDate = (iso: string | null) =>
     min-width: 0;
   }
 
-  .book-grid {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: var(--space-3) var(--space-2);
-  }
-  .book {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    min-width: 0;
-  }
-  .book-cover {
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    object-fit: cover;
-    display: block;
-    border: 1px solid var(--color-line);
-  }
-  .book a:hover .book-cover,
   .current-item a:hover .current-cover { border-color: var(--color-gold); }
 
   .book-title {
@@ -192,24 +145,11 @@ const fmtDate = (iso: string | null) =>
     color: var(--color-text);
   }
   .book-title:hover { color: var(--color-gold-bright); }
-  .book .book-title { margin-top: 0.2rem; }
 
   .book-author {
     font-size: 0.8rem;
     color: var(--color-text-dim);
   }
-
-  .book-row {
-    display: flex;
-    gap: 0.6rem;
-    align-items: baseline;
-    flex-wrap: wrap;
-  }
-  .stars {
-    color: var(--color-gold);
-    letter-spacing: 0.1em;
-  }
-  .stars-empty { color: var(--color-line-bright); }
 
   .data-footer {
     margin-top: var(--space-5);
