@@ -46,8 +46,8 @@ export function coverDataUri(mdFile, coverValue) {
   return `data:${mime};base64,${fs.readFileSync(absPath).toString('base64')}`;
 }
 
-// Mirrors the site's default "royal" theme (src/styles/global.css root tokens):
-// dark ground, hairline gold rule, steel-blue accent, monospace annotations.
+// Mirrors the site's "royal" theme (src/styles/global.css [data-theme='royal']
+// tokens): dark ground, hairline gold rule, steel-blue accent, monospace annotations.
 // Email clients don't load the site's web fonts or CSS custom properties, so
 // colors are hardcoded and fonts fall back to system serif/sans/mono stacks.
 export const EMAIL_THEME = {

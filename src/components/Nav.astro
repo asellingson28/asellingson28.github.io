@@ -42,16 +42,16 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
       <span class="mono-label switch-name" id="theme-switch-name">theme</span>
       <div class="theme-wheel" role="group" aria-labelledby="theme-switch-name">
         <span class="wheel-needle" aria-hidden="true"></span>
-        <button type="button" class="wheel-point wheel-n" data-theme-index="0" aria-label="royal" title="royal"></button>
+        <button type="button" class="wheel-point wheel-n" data-theme-index="0" aria-label="cherry" title="cherry"></button>
         <button type="button" class="wheel-point wheel-e" data-theme-index="1" aria-label="sunset" title="sunset"></button>
-        <button type="button" class="wheel-point wheel-s" data-theme-index="2" aria-label="cherry" title="cherry"></button>
+        <button type="button" class="wheel-point wheel-s" data-theme-index="2" aria-label="royal" title="royal"></button>
         <button type="button" class="wheel-point wheel-w" data-theme-index="3" aria-label="monet" title="monet"></button>
       </div>
-      <button type="button" class="mono-label opt" data-theme-index="0">royal</button>
+      <button type="button" class="mono-label opt" data-theme-index="0">cherry</button>
       <span class="mono-label sep" aria-hidden="true">/</span>
       <button type="button" class="mono-label opt" data-theme-index="1">sunset</button>
       <span class="mono-label sep" aria-hidden="true">/</span>
-      <button type="button" class="mono-label opt" data-theme-index="2">cherry</button>
+      <button type="button" class="mono-label opt" data-theme-index="2">royal</button>
       <span class="mono-label sep" aria-hidden="true">/</span>
       <button type="button" class="mono-label opt" data-theme-index="3">monet</button>
     </div>
@@ -232,7 +232,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 </style>
 
 <script>
-  const themes = ['royal', 'sunset', 'cherry', 'monet'];
+  const themes = ['cherry', 'sunset', 'royal', 'monet'];
   const root = document.documentElement;
   const needle = document.querySelector<HTMLElement>('.wheel-needle')!;
   const opts = [...document.querySelectorAll<HTMLButtonElement>('.theme-switch .opt')];
@@ -256,7 +256,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
     } catch {}
   };
 
-  sync(Math.max(0, themes.indexOf(root.dataset.theme ?? 'royal')));
+  sync(Math.max(0, themes.indexOf(root.dataset.theme ?? 'cherry')));
   opts.forEach((opt) => opt.addEventListener('click', () => apply(Number(opt.dataset.themeIndex))));
   points.forEach((point) => point.addEventListener('click', () => apply(Number(point.dataset.themeIndex))));
 </script>
