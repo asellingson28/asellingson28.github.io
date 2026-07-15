@@ -216,9 +216,18 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   .sep { color: var(--color-line-bright); }
 
   @media (max-width: 640px) {
-    nav ul { gap: var(--space-2); flex-wrap: wrap; }
-    .nav-label { display: none; }
-    .nav-n { font-size: 0.75rem; }
+    nav ul { gap: var(--space-2) var(--space-3); flex-wrap: wrap; }
+    .nav-n { display: none; }
+
+    /* the wheel's points keep aria-labels, so hiding the text row here
+       doesn't lose the theme names for a11y — it just stops the row
+       (theme name + 4 options + separators) from overflowing past the
+       left edge of narrow viewports, where it has no room to wrap. */
+    .theme-switch .opt,
+    .theme-switch .sep {
+      display: none;
+    }
+    .switch-name { border-right: none; padding-right: 0; }
   }
 </style>
 

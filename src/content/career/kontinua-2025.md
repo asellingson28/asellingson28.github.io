@@ -21,6 +21,7 @@ quiz PDFs, and support deployment of [public workbook PDFs](https://kontinuafoun
     - Newtonian Physics
     - Circular Motion
     - Electromagnetism
+    - Linear Algebra Sequence
     - Bitmap and Hexadecimal Chapters
     - Drones, Quadcopters, and Helicopters
     
