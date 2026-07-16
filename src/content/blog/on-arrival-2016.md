@@ -5,7 +5,7 @@ tags: ["film","linguistics","existentialism"]
 description: "My thoughts on the sci-fi film and its relevance to our current world"
 coverCaption: "Scene from *Arrival* depicting the orb-like ship. Source: TMDB"
 cover: ./on-arrival-2016-cover.jpg
-draft: true
+draft: false
 ---
 
 I had the absolute pleasure of watching a showing of *Arrival (2016, dir. Denis Villeneuve)* at the Palm Theatre in downtown SLO a few nights ago.
