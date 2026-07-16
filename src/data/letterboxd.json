@@ -1,7 +1,18 @@
 {
-  "fetchedAt": "2026-07-15T16:15:00.698Z",
+  "fetchedAt": "2026-07-16T11:13:29.696Z",
   "username": "aselling",
   "films": [
+    {
+      "title": "Troy",
+      "year": 2004,
+      "link": "https://letterboxd.com/aselling/film/troy/",
+      "poster": "https://a.ltrbxd.com/resized/sm/upload/s4/d9/77/ed/edMlij7nw2NMla32xskDnzMCFBM-0-600-0-900-crop.jpg?v=e7b13d27e0",
+      "rating": null,
+      "liked": false,
+      "rewatch": false,
+      "watchedDate": "2026-07-15",
+      "review": "This review may contain spoilers.\n\nthe only bearable parts of this were when diane kruger stared off longingly at the battle she caused. but — film 199 of the year!!"
+    },
     {
       "title": "Sinister",
       "year": 2012,
@@ -507,17 +518,6 @@
       "rewatch": false,
       "watchedDate": "2026-06-05",
       "review": "this is what happens to me when I buy furniture from ikea"
-    },
-    {
-      "title": "Ghostbusters II",
-      "year": 1989,
-      "link": "https://letterboxd.com/aselling/film/ghostbusters-ii/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/4/9/9/8/1/49981-ghostbusters-ii-0-600-0-900-crop.jpg?v=63439a040e",
-      "rating": null,
-      "liked": true,
-      "rewatch": false,
-      "watchedDate": "2026-06-05",
-      "review": "what'd you do over winter break?oh you know, covered the Statue Of Liberty with silly string, made it go mobile, and crashed it into an art museum"
     },
     {
       "title": "Oppenheimer",

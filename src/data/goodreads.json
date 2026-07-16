@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-13T12:17:45.407Z",
+  "fetchedAt": "2026-07-16T11:13:29.696Z",
   "userId": "192886223",
   "currentlyReading": [
     {
@@ -24,6 +24,16 @@
     }
   ],
   "toRead": [
+    {
+      "title": "The Meaning of Your Life: Finding Purpose in an Age of Emptiness",
+      "author": "Arthur C. Brooks",
+      "link": "https://www.goodreads.com/book/show/238766978",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1774479295l/238766978.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-07-15",
+      "review": null
+    },
     {
       "title": "Babylonia",
       "author": "Costanza Casati",
