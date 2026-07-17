@@ -46,20 +46,20 @@ export function coverDataUri(mdFile, coverValue) {
   return `data:${mime};base64,${fs.readFileSync(absPath).toString('base64')}`;
 }
 
-// Mirrors the site's "royal" theme (src/styles/global.css [data-theme='royal']
-// tokens): dark ground, hairline gold rule, steel-blue accent, monospace annotations.
+// Mirrors the site's "odyssey" theme, the default (src/styles/global.css :root
+// tokens): dark ground, hairline bronze rule, misty blue-teal accent, monospace annotations.
 // Email clients don't load the site's web fonts or CSS custom properties, so
 // colors are hardcoded and fonts fall back to system serif/sans/mono stacks.
 export const EMAIL_THEME = {
-  bg: '#0a0d12',
-  card: '#10141c',
-  line: '#232b38',
-  gold: '#c9a227',
-  goldBright: '#e0bc4a',
-  blueBright: '#7fb0e0',
-  text: '#e4e1d8',
-  textDim: '#8a8f98',
-  textFaint: '#565c68',
+  bg: '#0a1119',
+  card: '#101b26',
+  line: '#25323f',
+  gold: '#a9814a',
+  goldBright: '#d1a562',
+  blueBright: '#7eb0c4',
+  text: '#e6e0d2',
+  textDim: '#8b95a1',
+  textFaint: '#566270',
   fontDisplay: "Georgia, 'Times New Roman', serif",
   fontBody: "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif",
   fontMono: "'Courier New', Courier, monospace",
@@ -125,7 +125,7 @@ export function addressFromFormatted(value) {
   return (match?.[1] ?? value ?? '').trim();
 }
 
-// Shared "royal" card shell used by both the new-post and confirm-subscription
+// Shared "odyssey" card shell used by both the new-post and confirm-subscription
 // emails: hairline gold->line->blue rule, mono eyebrow, serif title, optional
 // body copy, a bordered CTA button, hairline divider, mono footer.
 // title is escaped as plain text by default; pass titleHtml instead (already

@@ -3,39 +3,45 @@
    Direction: technical drafting / blueprint document.
    Dark ground, hairline gold rules, steel-blue accents,
    monospace "index" labels used like drawing annotations.
+
+   Default theme: odyssey — near-black navy ground with a hazy
+   blue-teal fog, bronze/brass takes the gold role (armor and
+   bone ornament rather than metal coin-gold). Toggled via
+   data-theme on <html> (slider in Nav); the default has no
+   data-theme attribute and lives directly in :root.
 =========================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
 
 :root {
   /* -- color: ground -- */
-  --color-bg: #140a10;
-  --color-bg-elevated: #1d0f17;
-  --color-bg-inset: #180c13;
+  --color-bg: #0a1119;
+  --color-bg-elevated: #101b26;
+  --color-bg-inset: #0c141c;
 
   /* -- color: line work -- */
-  --color-line: #3a1e2b;
-  --color-line-bright: #5c3244;
+  --color-line: #25323f;
+  --color-line-bright: #3d5464;
 
   /* -- color: accents -- */
-  --color-blue: #1f8d9c;
-  --color-blue-bright: #46bccb;
-  --color-gold: #b02540;
-  --color-gold-bright: #d94f63;
+  --color-blue: #4f7f96;
+  --color-blue-bright: #7eb0c4;
+  --color-gold: #a9814a;
+  --color-gold-bright: #d1a562;
 
   /* -- color: text -- */
-  --color-text: #ece0dd;
-  --color-text-dim: #a18b91;
-  --color-text-faint: #6d5661;
+  --color-text: #e6e0d2;
+  --color-text-dim: #8b95a1;
+  --color-text-faint: #566270;
 
   /* -- color: ornaments (vines, chains) -- */
-  --color-vine: #3f8f5f;
-  --color-chain: #8d5f4b;
+  --color-vine: #52785f;
+  --color-chain: #8f6b45;
 
   /* -- color: places map dots (lived/want-to-go/third-place — event/travel reuse gold/blue) -- */
-  --color-dot-lived: #4f9e6f;
-  --color-dot-want-to-go: #9b72d1;
-  --color-dot-third-place: #e0973f;
+  --color-dot-lived: #6fbf8f;
+  --color-dot-want-to-go: #a385d9;
+  --color-dot-third-place: #e8944a;
 
   /* -- type -- */
   --font-display: 'Fraunces', Georgia, serif;
@@ -90,40 +96,40 @@
 }
 
 /* ===========================================================
-   THEME: royal
-   Deep steel-blue variant — navy ground, hairline gold rules,
-   steel blue takes the link/accent role. The original default.
-   Toggled via data-theme on <html> (slider in Nav).
+   THEME: cherry
+   Deep wine variant — near-black burgundy ground, crimson gold
+   rules, teal takes the blue role. The original default, now a
+   named theme. Toggled via data-theme on <html> (slider in Nav).
 =========================================================== */
-[data-theme='royal'] {
+[data-theme='cherry'] {
   /* -- color: ground -- */
-  --color-bg: #0a0d12;
-  --color-bg-elevated: #10141c;
-  --color-bg-inset: #0d1015;
+  --color-bg: #140a10;
+  --color-bg-elevated: #1d0f17;
+  --color-bg-inset: #180c13;
 
   /* -- color: line work -- */
-  --color-line: #232b38;
-  --color-line-bright: #3a4557;
+  --color-line: #3a1e2b;
+  --color-line-bright: #5c3244;
 
   /* -- color: accents -- */
-  --color-blue: #4a7fb5;
-  --color-blue-bright: #7fb0e0;
-  --color-gold: #c9a227;
-  --color-gold-bright: #e0bc4a;
+  --color-blue: #1f8d9c;
+  --color-blue-bright: #46bccb;
+  --color-gold: #b02540;
+  --color-gold-bright: #d94f63;
 
   /* -- color: text -- */
-  --color-text: #e4e1d8;
-  --color-text-dim: #8a8f98;
-  --color-text-faint: #565c68;
+  --color-text: #ece0dd;
+  --color-text-dim: #a18b91;
+  --color-text-faint: #6d5661;
 
   /* -- color: ornaments (vines, chains) -- */
-  --color-vine: #5f8f72;
-  --color-chain: #8a6a4f;
+  --color-vine: #3f8f5f;
+  --color-chain: #8d5f4b;
 
   /* -- color: places map dots (lived/want-to-go/third-place — event/travel reuse gold/blue) -- */
-  --color-dot-lived: #6fbf8f;
-  --color-dot-want-to-go: #a385d9;
-  --color-dot-third-place: #e8944a;
+  --color-dot-lived: #4f9e6f;
+  --color-dot-want-to-go: #9b72d1;
+  --color-dot-third-place: #e0973f;
 }
 
 /* ===========================================================
