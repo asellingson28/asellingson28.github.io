@@ -6,6 +6,10 @@
 // POST /__add-place/update { slug, name, kind, date?, detail?, notes? }
 //   rewrites the managed fields of an existing <slug>.md, leaving other
 //   frontmatter (location, coords, images, comments) untouched
+// POST /__add-place/reorder { slug, files: string[] }
+//   renumbers src/content/places/<slug>/* with 01-, 02-… prefixes matching
+//   the given filename order (folder images are sorted by filename, see top
+//   of src/pages/travels.astro)
 // Never part of the built site.
 // NOTE: this file is loaded once at dev-server startup — after editing it,
 // restart `npm run dev` or requests will hit the old handler.
@@ -57,6 +61,46 @@ export default function devAddPlace() {
             fs.mkdirSync(dir, { recursive: true });
             fs.writeFileSync(file, Buffer.concat(chunks));
             reply(200, { file: path.relative(process.cwd(), file) });
+          });
+          return;
+        }
+
+        if (url.pathname === '/reorder') {
+          let reqBody = '';
+          req.on('data', (c) => (reqBody += c));
+          req.on('end', () => {
+            let p;
+            try {
+              p = JSON.parse(reqBody);
+            } catch {
+              return reply(400, { error: 'invalid JSON' });
+            }
+            const slug = slugify(String(p.slug ?? ''));
+            const files = Array.isArray(p.files) ? p.files.map((f) => path.basename(String(f))) : [];
+            const dir = path.join(PLACES_DIR, slug);
+            if (!fs.existsSync(dir)) return reply(400, { error: `no photo folder for slug "${slug}"` });
+
+            const actual = fs
+              .readdirSync(dir)
+              .filter((f) => IMAGE_EXTS.has(path.extname(f).toLowerCase()));
+            const actualSet = new Set(actual);
+            if (files.length !== actual.length || !files.every((f) => actualSet.has(f)))
+              return reply(400, { error: 'file list does not match the photos on disk — reload and try again' });
+
+            // two-pass rename through temp names so overlapping targets don't collide
+            const strip = (base) => base.replace(/^\d+-/, '');
+            const temps = files.map((f, i) => {
+              const tmp = path.join(dir, `.tmp-reorder-${i}${path.extname(f)}`);
+              fs.renameSync(path.join(dir, f), tmp);
+              return tmp;
+            });
+            temps.forEach((tmp, i) => {
+              const ext = path.extname(files[i]);
+              const base = strip(path.basename(files[i], ext));
+              fs.renameSync(tmp, path.join(dir, `${String(i + 1).padStart(2, '0')}-${base}${ext}`));
+            });
+
+            reply(200, { slug });
           });
           return;
         }

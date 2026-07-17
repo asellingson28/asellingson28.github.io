@@ -24,6 +24,8 @@ interface MapPlace {
   date?: string;
   detail?: string;
   images: string[];
+  /** original filenames backing `images`, in the same order — dev only, for photo reordering */
+  imageFiles?: string[];
   /** raw markdown body — only included in dev, for the edit form */
   notes?: string;
 }
@@ -47,10 +49,16 @@ for (const entry of entries) {
     .filter((img) => !listed.some((l) => l.src === img.src));
 
   const images: string[] = [];
+  const imageFiles: string[] = [];
   for (const img of [...listed, ...folderImgs]) {
     const optimized = await getImage({ src: img, width: 560, format: 'webp' });
     images.push(optimized.src);
+    // raw (pre-optimization) src is a real filesystem path in dev — reused to let
+    // the timeline carousel's reorder buttons rename files on disk (see dev-add-place.mjs)
+    if (import.meta.env.DEV) imageFiles.push(img.src.split('/').pop()?.split('?')[0] ?? '');
   }
+  // reordering only supports plain folder-dropped photos, which is all places currently use
+  const canReorder = import.meta.env.DEV && listed.length === 0 && folderImgs.length > 1;
 
   if (entry.body?.trim()) {
     const { Content } = await render(entry);
@@ -65,6 +73,7 @@ for (const entry of entries) {
     date: entry.data.date,
     detail: entry.data.detail,
     images,
+    imageFiles: canReorder ? imageFiles : undefined,
     notes: import.meta.env.DEV ? (entry.body ?? '').trim() : undefined,
   });
 }
@@ -174,6 +183,11 @@ const timelinePlaces = mapPlaces
     <div id="map"></div>
   </div>
 
+  <div id="photo-lightbox" class="photo-lightbox" aria-hidden="true">
+    <button type="button" class="photo-lightbox-close" aria-label="Close">&times;</button>
+    <img class="photo-lightbox-img" src="" alt="" />
+  </div>
+
   <section>
     <h2 class="mono-label section-label">timeline / {String(timelinePlaces.length).padStart(2, '0')} dated</h2>
     <ul class="post-list">
@@ -192,8 +206,32 @@ const timelinePlaces = mapPlaces
             {place.detail && <p class="post-desc">{place.detail}</p>}
           </div>
           {place.images[0] && (
-            <figure class="post-cover">
-              <img src={place.images[0]} alt={`Photo from ${place.name}`} loading="lazy" />
+            <figure
+              class="post-cover"
+              data-images={JSON.stringify(place.images)}
+              data-files={place.imageFiles ? JSON.stringify(place.imageFiles) : undefined}
+              data-slug={place.imageFiles ? place.id : undefined}
+            >
+              <div class="post-cover-frame">
+                <img src={place.images[0]} alt={`Photo from ${place.name}`} loading="lazy" />
+                {place.images.length > 1 && (
+                  <>
+                    <button type="button" class="post-cover-arrow post-cover-prev" aria-label="Previous photo">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+                    </button>
+                    <button type="button" class="post-cover-arrow post-cover-next" aria-label="Next photo">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                    </button>
+                    <span class="post-cover-count mono-label">1 / {place.images.length}</span>
+                  </>
+                )}
+              </div>
+              {place.imageFiles && (
+                <div class="post-cover-reorder">
+                  <button type="button" class="post-cover-move-left dev-btn mono-label">‹ move</button>
+                  <button type="button" class="post-cover-move-right dev-btn mono-label">move ›</button>
+                </div>
+              )}
             </figure>
           )}
         </li>
@@ -221,6 +259,7 @@ const timelinePlaces = mapPlaces
     date?: string;
     detail?: string;
     images: string[];
+    imageFiles?: string[]; // original filenames backing `images`, present in dev only
     notes?: string; // raw markdown, present in dev only
   }
 
@@ -245,6 +284,36 @@ const timelinePlaces = mapPlaces
   const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
   const kindLabel = (kind: PlaceKind) =>
     kind === 'want-to-go' ? 'want to go' : kind === 'third-place' ? 'third place' : kind;
+  // widen the grid as photo count grows so thumbnails don't shrink to nothing
+  const popupImgCols = (count: number) => (count > 12 ? 4 : count > 6 ? 3 : 2);
+
+  // fullscreen photo lightbox, shared by every popup's photo grid
+  const lightbox = document.getElementById('photo-lightbox')!;
+  const lightboxImg = lightbox.querySelector<HTMLImageElement>('.photo-lightbox-img')!;
+  const openLightbox = (src: string, alt: string) => {
+    lightboxImg.src = src;
+    lightboxImg.alt = alt;
+    lightbox.classList.add('is-open');
+    lightbox.setAttribute('aria-hidden', 'false');
+  };
+  const closeLightbox = () => {
+    lightbox.classList.remove('is-open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    lightboxImg.src = '';
+  };
+  lightbox.querySelector('.photo-lightbox-close')?.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightbox.classList.contains('is-open')) closeLightbox();
+  });
+  // popups are rebuilt from an HTML string each time they open, so delegate from a static ancestor
+  document.addEventListener('click', (e) => {
+    const wrap = (e.target as HTMLElement).closest('.popup-img-wrap');
+    const img = wrap?.querySelector('img');
+    if (img) openLightbox(img.src, img.alt);
+  });
 
   interface PlaceMarkerOptions extends L.MarkerOptions {
     kind: PlaceKind;
@@ -287,8 +356,17 @@ const timelinePlaces = mapPlaces
       document.querySelector<HTMLTemplateElement>(`template[data-notes="${CSS.escape(place.id)}"]`)
         ?.innerHTML ?? '';
     const imgs = place.images
-      .map((src) => `<img src="${esc(src)}" alt="${esc(place.name)}" loading="lazy" />`)
+      .map(
+        (src) => `
+        <span class="popup-img-wrap">
+          <img src="${esc(src)}" alt="${esc(place.name)}" loading="lazy" />
+          <button type="button" class="popup-img-expand" aria-label="Expand photo">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/></svg>
+          </button>
+        </span>`
+      )
       .join('');
+    const imgCols = popupImgCols(place.images.length);
 
     const html = `
       <div class="place-popup" data-id="${esc(place.id)}">
@@ -296,7 +374,7 @@ const timelinePlaces = mapPlaces
         <strong>${esc(place.name)}</strong>
         ${place.detail ? `<em>${esc(place.detail)}</em>` : ''}
         ${notes ? `<div class="popup-notes">${notes}</div>` : ''}
-        ${imgs ? `<div class="popup-imgs">${imgs}</div>` : ''}
+        ${imgs ? `<div class="popup-imgs" style="grid-template-columns: repeat(${imgCols}, 1fr);">${imgs}</div>` : ''}
       </div>`;
 
     const options: PlaceMarkerOptions = {
@@ -304,7 +382,10 @@ const timelinePlaces = mapPlaces
       title: place.name,
       kind: place.kind,
     };
-    const marker = L.marker(place.coords, options).bindPopup(html, { maxWidth: 280, maxHeight: 420 });
+    const marker = L.marker(place.coords, options).bindPopup(html, {
+      maxWidth: imgCols > 2 ? 320 : 280,
+      maxHeight: 420,
+    });
     kindMarkers[place.kind].push(marker);
     markersById[place.id] = marker;
   }
@@ -482,6 +563,56 @@ const timelinePlaces = mapPlaces
       });
     });
   }
+
+  // timeline photo carousels: swap the cover img's src, wrap-around at the ends;
+  // clicking the image opens the same lightbox as the map popups
+  document.querySelectorAll<HTMLElement>('.post-cover[data-images]').forEach((fig) => {
+    const images: string[] = JSON.parse(fig.dataset.images ?? '[]');
+    const img = fig.querySelector('img');
+    if (!images.length || !img) return;
+    const counter = fig.querySelector('.post-cover-count');
+    let index = 0;
+    const show = (i: number) => {
+      index = (i + images.length) % images.length;
+      img.src = images[index];
+      if (counter) counter.textContent = `${index + 1} / ${images.length}`;
+    };
+    fig.querySelector('.post-cover-prev')?.addEventListener('click', () => show(index - 1));
+    fig.querySelector('.post-cover-next')?.addEventListener('click', () => show(index + 1));
+    img.addEventListener('click', () => openLightbox(img.src, img.alt));
+
+    // dev-only: "move" swaps the currently-shown photo with a neighbor and persists
+    // the new order by renaming files on disk (see /__add-place/reorder)
+    if (import.meta.env.DEV && fig.dataset.files && fig.dataset.slug) {
+      const files: string[] = JSON.parse(fig.dataset.files);
+      const slug = fig.dataset.slug;
+      const moveLeft = fig.querySelector<HTMLButtonElement>('.post-cover-move-left');
+      const moveRight = fig.querySelector<HTMLButtonElement>('.post-cover-move-right');
+      const move = async (to: number) => {
+        if (to < 0 || to >= files.length) return;
+        const reordered = [...files];
+        const [moved] = reordered.splice(index, 1);
+        reordered.splice(to, 0, moved);
+        if (moveLeft) moveLeft.disabled = true;
+        if (moveRight) moveRight.disabled = true;
+        try {
+          const res = await fetch('/__add-place/reorder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug, files: reordered }),
+          });
+          if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? 'reorder failed');
+          location.reload();
+        } catch (err) {
+          alert(err instanceof Error ? err.message : 'reorder failed');
+          if (moveLeft) moveLeft.disabled = false;
+          if (moveRight) moveRight.disabled = false;
+        }
+      };
+      moveLeft?.addEventListener('click', () => move(index - 1));
+      moveRight?.addEventListener('click', () => move(index + 1));
+    }
+  });
 </script>
 
 <style>
@@ -539,16 +670,63 @@ const timelinePlaces = mapPlaces
   .timeline-edit { margin-left: 0.6rem; padding: 0.1rem 0.45rem; }
 
   .post-cover {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     flex-shrink: 0;
     width: 200px;
     margin: 0;
   }
+  .post-cover-frame { position: relative; }
   .post-cover img {
     width: 100%;
     height: 140px;
     object-fit: cover;
     display: block;
     border: 1px solid var(--color-line);
+    cursor: zoom-in;
+  }
+  .post-cover-reorder {
+    display: flex;
+    gap: 0.35rem;
+  }
+  .post-cover-reorder button {
+    flex: 1;
+    font-size: 0.6rem;
+    padding: 0.15rem 0.3rem;
+  }
+  .post-cover-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.6rem;
+    height: 1.6rem;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid var(--color-gold);
+    color: var(--color-gold);
+    padding: 0;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .post-cover-frame:hover .post-cover-arrow,
+  .post-cover-arrow:focus-visible {
+    opacity: 1;
+  }
+  .post-cover-prev { left: 0.3rem; }
+  .post-cover-next { right: 0.3rem; }
+  .post-cover-count {
+    position: absolute;
+    bottom: 0.3rem;
+    right: 0.3rem;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid var(--color-line-bright);
+    color: var(--color-text);
+    font-size: 0.6rem;
+    padding: 0.05rem 0.35rem;
+    pointer-events: none;
   }
 
   @media (max-width: 640px) {
@@ -715,6 +893,7 @@ const timelinePlaces = mapPlaces
   .popup-notes :is(p, ul, ol) { margin: 0 0 0.35rem; }
   .popup-imgs {
     display: grid;
+    /* column count set inline per-popup, scaling with photo count (see popupImgCols) */
     grid-template-columns: 1fr 1fr;
     gap: 0.4rem;
     margin-top: 0.25rem;
@@ -726,8 +905,66 @@ const timelinePlaces = mapPlaces
     border: 1px solid var(--color-line);
     display: block;
   }
+  .popup-img-wrap { position: relative; display: block; cursor: zoom-in; }
+  .popup-img-expand {
+    position: absolute;
+    top: 0.15rem;
+    right: 0.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid var(--color-gold);
+    color: var(--color-gold);
+    font-size: 0.7rem;
+    line-height: 1;
+    padding: 0;
+    cursor: zoom-in;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+  }
+  .popup-img-wrap:hover .popup-img-expand,
+  .popup-img-expand:focus-visible {
+    opacity: 1;
+  }
   /* a lone photo gets the full width at its natural aspect */
-  .popup-imgs img:only-child { grid-column: span 2; aspect-ratio: auto; }
+  .popup-img-wrap:only-child { grid-column: 1 / -1; }
+  .popup-img-wrap:only-child img { aspect-ratio: auto; }
+
+  .photo-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem;
+    background: rgba(4, 6, 10, 0.9);
+  }
+  .photo-lightbox.is-open { display: flex; }
+  .photo-lightbox-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border: 1px solid var(--color-line-bright);
+  }
+  .photo-lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    background: none;
+    border: 1px solid var(--color-line-bright);
+    color: var(--color-text);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .photo-lightbox-close:hover { color: var(--color-gold-bright); border-color: var(--color-gold); }
 
   .add-place-form input,
   .add-place-form select,
