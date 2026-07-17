@@ -448,9 +448,27 @@ read.sort(byRecency);
 toRead.sort((a, b) => (b.addedAt ?? '').localeCompare(a.addedAt ?? ''));
 repos.sort((a, b) => (b.pushedAt ?? '').localeCompare(a.pushedAt ?? ''));
 
+// The favorites/watchlist/diary poster resolution races Letterboxd's
+// Cloudflare JS challenge (see fetchFavorites/fetchWatchlist/fetchDiaryPosters)
+// — it's more prone to timing out from a CI runner's datacenter IP than a
+// local run, which would otherwise erase a previously-resolved poster. Keep
+// the last known poster (matched by link) rather than let a slow challenge
+// wipe it.
+let previousLetterboxd = null;
+try {
+  previousLetterboxd = JSON.parse(readFileSync(dataDir + 'letterboxd.json', 'utf8'));
+} catch {}
+const previousFilmByLink = new Map((previousLetterboxd?.films ?? []).map((f) => [f.link, f]));
+
 const films = rawFilms.map(({ viewingId, ...film }) => {
   const custom = diaryPosters.get(viewingId);
-  return custom ? { ...film, poster: custom } : film;
+  if (custom) return { ...film, poster: custom };
+  // No custom poster resolved this run for this diary entry — that's the
+  // normal case for entries with no custom poster, but also what a failed/
+  // partial diary scrape looks like. Fall back to whatever poster (custom or
+  // default) this same film had last time rather than reverting it.
+  const previousPoster = previousFilmByLink.get(film.link)?.poster;
+  return previousPoster ? { ...film, poster: previousPoster } : film;
 });
 
 // fetchContributionCalendar/fetchContributedRepos return null when no token
@@ -464,16 +482,6 @@ const previousGithub = (() => {
 })();
 const contributions = fetchedCalendar ?? previousGithub?.contributions ?? null;
 const contributedRepos = fetchedContributedRepos ?? previousGithub?.contributedRepos ?? [];
-
-// The favorites/watchlist poster resolution races Letterboxd's Cloudflare JS
-// challenge (see fetchFavorites/fetchWatchlist) — it's more prone to timing
-// out from a CI runner's datacenter IP than a local run, which would
-// otherwise null out a previously-resolved poster. Keep the last known
-// poster (matched by link) rather than let a slow challenge erase it.
-let previousLetterboxd = null;
-try {
-  previousLetterboxd = JSON.parse(readFileSync(dataDir + 'letterboxd.json', 'utf8'));
-} catch {}
 
 function backfillPosters(entries, previousEntries) {
   const previousByLink = new Map((previousEntries ?? []).map((e) => [e.link, e.poster]));
