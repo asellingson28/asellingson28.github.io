@@ -84,6 +84,40 @@ function randomToken() {
   return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+// Mirrors scripts/lib/mail-theme.mjs's maskEmail. Duplicated for the same
+// reason as THEME above — not worth a shared-build step for one function.
+function maskEmail(email) {
+  const [user, domain] = email.split('@');
+  if (!domain) return `${email.slice(0, 2)}***`;
+  const maskedUser = user.length <= 2 ? `${user[0] ?? ''}*` : `${user.slice(0, 2)}${'*'.repeat(user.length - 2)}`;
+  return `${maskedUser}@${domain}`;
+}
+
+// Every path through handleSubscribe() ends in the same generic {ok:true}
+// response by design (see genericOk() below), so a legitimate signup that
+// gets silently dropped — honeypot false-positive from browser autofill,
+// rate limiting, a typo'd address — leaves no trace anywhere else. Logging
+// the reason here is the only way to diagnose "my friend says they signed up
+// but never got an email" after the fact, via wrangler tail or the
+// dashboard's Logs tab (see wrangler.toml's `observability` block).
+function logSubscribeEvent(event, detail) {
+  console.log(JSON.stringify({ event: `subscribe_${event}`, ...detail }));
+}
+
+// Finds an existing pending: entry for this email, if any. O(n) in the
+// number of currently-pending signups, which for a personal blog's
+// subscribe form is never going to be large enough to matter.
+async function findPendingByEmail(env, email) {
+  const { keys } = await env.SUBSCRIBERS.list({ prefix: 'pending:' });
+  for (const key of keys) {
+    const raw = await env.SUBSCRIBERS.get(key.name);
+    if (!raw) continue;
+    const data = JSON.parse(raw);
+    if (data.email === email) return { key: key.name, data };
+  }
+  return null;
+}
+
 function requireAuth(request, env) {
   return request.headers.get('Authorization') === `Bearer ${env.SYNC_SECRET}`;
 }
@@ -113,6 +147,7 @@ async function handleSubscribe(request, env, origin) {
 
   const email = String(body.email ?? '').trim().toLowerCase();
   const honeypot = String(body.website ?? '');
+  const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
 
   // Always return the same generic "ok" shape for honeypot hits, malformed
   // addresses, rate-limited IPs, and already-subscribed addresses — never
@@ -120,18 +155,47 @@ async function handleSubscribe(request, env, origin) {
   // enumerate whether a given address is already on the list.
   const genericOk = () => json({ ok: true }, { headers });
 
-  if (honeypot || !EMAIL_RE.test(email) || email.length > 320) return genericOk();
+  if (honeypot) {
+    logSubscribeEvent('skip_honeypot', { ip });
+    return genericOk();
+  }
+  if (!EMAIL_RE.test(email) || email.length > 320) {
+    logSubscribeEvent('skip_invalid_email', { ip });
+    return genericOk();
+  }
 
-  const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
-  if (!(await checkRateLimit(env, ip))) return genericOk();
+  if (!(await checkRateLimit(env, ip))) {
+    logSubscribeEvent('skip_rate_limited', { ip, email: maskEmail(email) });
+    return genericOk();
+  }
 
   const confirmed = await getConfirmed(env);
-  if (confirmed.includes(email)) return genericOk();
+  if (confirmed.includes(email)) {
+    logSubscribeEvent('skip_already_confirmed', { email: maskEmail(email) });
+    return genericOk();
+  }
+
+  // If this address already has a live pending token, don't pile on a
+  // second one — that would just queue duplicate confirmation emails on the
+  // next cron run. But if the existing one was already emailed (and the
+  // person is back submitting the form again, e.g. because they never got
+  // it or lost the link), replace it with a fresh token so they get a real
+  // new attempt instead of silently doing nothing.
+  const existing = await findPendingByEmail(env, email);
+  if (existing) {
+    if (!existing.data.emailedAt) {
+      logSubscribeEvent('skip_duplicate_pending', { email: maskEmail(email) });
+      return genericOk();
+    }
+    await env.SUBSCRIBERS.delete(existing.key);
+    logSubscribeEvent('resend', { email: maskEmail(email) });
+  }
 
   const token = randomToken();
   await env.SUBSCRIBERS.put(`pending:${token}`, JSON.stringify({ email, requestedAt: Date.now() }), {
     expirationTtl: PENDING_TTL_SECONDS,
   });
+  logSubscribeEvent('queued', { email: maskEmail(email) });
 
   return genericOk();
 }
@@ -175,6 +239,7 @@ async function handleConfirm(url, env) {
   const raw = token ? await env.SUBSCRIBERS.get(key) : null;
 
   if (!raw) {
+    logSubscribeEvent('confirm_invalid_token', {});
     return htmlPage({
       eyebrow: 'subscribe · error',
       title: 'Link expired',
@@ -189,6 +254,7 @@ async function handleConfirm(url, env) {
     await env.SUBSCRIBERS.put('confirmed', JSON.stringify(confirmed));
   }
   await env.SUBSCRIBERS.delete(key);
+  logSubscribeEvent('confirmed', { email: maskEmail(email) });
 
   return htmlPage({
     eyebrow: 'subscribe · confirmed',

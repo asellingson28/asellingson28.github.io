@@ -21,7 +21,8 @@ const fmtDate = (iso: string | null) =>
       })
     : null;
 
-const PAGE_SIZE = 21;
+// 7 columns × 2 rows per page — matches the fixed 7-column grid in BookGrid
+const PAGE_SIZE = 14;
 ---
 <BaseLayout title="Reading" description="Books I've read, pulled from my Goodreads shelves.">
   <span class="mono-label">index / 04</span>
@@ -48,6 +49,14 @@ const PAGE_SIZE = 21;
               <a class="book-title" href={book.link} target="_blank" rel="noopener noreferrer">{book.title}</a>
               <span class="book-author">{book.author}</span>
               {book.addedAt && <span class="mono-label">started / {fmtDate(book.addedAt)}</span>}
+              {book.currentPage && book.totalPages && (
+                <div class="progress">
+                  <div class="progress-track">
+                    <div class="progress-fill" style={`width: ${Math.round((book.currentPage / book.totalPages) * 100)}%`} />
+                  </div>
+                  <span class="mono-label progress-label">page {book.currentPage} / {book.totalPages}</span>
+                </div>
+              )}
             </div>
           </li>
         ))}
@@ -149,6 +158,21 @@ const PAGE_SIZE = 21;
   .book-author {
     font-size: 0.8rem;
     color: var(--color-text-dim);
+  }
+
+  .progress { margin-top: 0.15rem; }
+  .progress-track {
+    height: 3px;
+    background: var(--color-line);
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--color-gold);
+  }
+  .progress-label {
+    display: block;
+    margin-top: 0.3rem;
+    color: var(--color-text-faint);
   }
 
   .data-footer {

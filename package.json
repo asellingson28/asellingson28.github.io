@@ -10,7 +10,8 @@
     "notify:confirm": "node scripts/send-subscription-confirmations.mjs",
     "fetch:media": "node scripts/fetch-media.mjs",
     "subscribers": "npm run subscribers --prefix worker",
-    "spellcheck": "cspell --no-progress \"src/**/*.{md,astro,ts,tsx,js,mjs}\" \"scripts/**/*.mjs\" \"worker/src/**/*.{ts,js}\" \"tests/**/*.ts\" \"*.{md,mjs,ts}\"",
+    "test:unit": "vitest run",
+    "spellcheck": "cspell --no-progress \"src/**/*.{md,astro,ts,tsx,js,mjs}\" \"scripts/**/*.mjs\" \"worker/**/*.{ts,js}\" \"tests/**/*.ts\" \"*.{md,mjs,ts}\"",
     "spellcheck:add-words": "node scripts/cspell-add-words.mjs",
     "prepare": "husky"
   },
@@ -37,6 +38,7 @@
     "cspell": "^10.0.1",
     "husky": "^9.1.7",
     "playwright-core": "^1.61.1",
-    "prettier": "^3.9.4"
+    "prettier": "^3.9.4",
+    "vitest": "^4.1.10"
   }
 }

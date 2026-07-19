@@ -12,10 +12,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run notify:blog -- --preview <file.md> [file...]` — render the notification email for a post (drafts included, ignores `notify`/`email: false`) to `.cache/email-preview-<slug>.html` and open it; never sends anything or touches the subscriber list
 - `npm run notify:confirm -- [--dry-run]` — send pending double opt-in confirmation emails
 - `npx playwright test` — e2e tests; single file: `npx playwright test tests/example.spec.ts`; single test: `npx playwright test -g "test name"`; one browser: `--project=chromium`
-- `npm run spellcheck` — cspell over `src/`, `scripts/`, `worker/src/`, `tests/`, and root markdown/config files; also runs automatically on `git commit` (staged files only) via the husky hook in `.husky/pre-commit`. Project-specific words (proper nouns, technical terms) live in the `words` list in `cspell.json` — add new ones there rather than disabling the check.
+- `npm run test:unit` — vitest over `scripts/**/*.test.mjs` (mail-theme helpers, the confirmation-email sender's pure logic and Worker-fetch orchestration, mocked)
+- `npm run spellcheck` — cspell over `src/`, `scripts/`, `worker/`, `tests/`, and root markdown/config files; also runs automatically on `git commit` (staged files only) via the husky hook in `.husky/pre-commit`. Project-specific words (proper nouns, technical terms) live in the `words` list in `cspell.json` — add new ones there rather than disabling the check.
 - No lint script; `prettier` is available as a devDependency (`npx prettier`)
 
-`worker/` is a separate npm project (Cloudflare Worker, not part of the Astro build) — `cd worker && npm run dev` / `npm run deploy`. See `worker/README.md` for one-time setup (KV namespace, secrets).
+`worker/` is a separate npm project (Cloudflare Worker, not part of the Astro build) — `cd worker && npm run dev` / `npm run deploy` / `npm test` (vitest via `@cloudflare/vitest-pool-workers`, runs the Worker's real `fetch` handler against a Miniflare-simulated KV binding — see `worker/test/index.test.js`). See `worker/README.md` for one-time setup (KV namespace, secrets).
 
 **Ports:** 4321/4322 are reserved for the user's own dev server — never bind to them or kill what's running there. For testing, use `--port 4329` for `astro dev` and `--port 4323` for `astro preview`.
 

@@ -1,8 +1,13 @@
-# asellingson28.github.io
+# aselling.us
 
 [![Playwright Tests](https://github.com/asellingson28/asellingson28.github.io/actions/workflows/playwright.yml/badge.svg)](https://github.com/asellingson28/asellingson28.github.io/actions/workflows/playwright.yml)
 
-Personal site built with [Astro](https://astro.build), deployed to GitHub Pages.
+[![Unit Tests](https://github.com/asellingson28/asellingson28.github.io/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/asellingson28/asellingson28.github.io/actions/workflows/unit-tests.yml)
+
+[![Deploy](https://github.com/asellingson28/asellingson28.github.io/actions/workflows/deploy.yml/badge.svg)](https://github.com/asellingson28/asellingson28.github.io/actions/workflows/deploy.yml)
+
+
+Personal site built with [Astro](https://astro.build), deployed to GitHub Pages. Contains public data of projects, places, media, and my in progress blog.
 
 ## Commands
 
@@ -10,5 +15,4 @@ Personal site built with [Astro](https://astro.build), deployed to GitHub Pages.
 - `npm run build` — static build to `dist/`
 - `npm run preview` — serve the built site
 - `npx playwright test` — end-to-end tests (builds the site and serves it before running)
-
-See `CLAUDE.md` for full architecture notes and the rest of the available scripts.
+- `npm run test:unit` — unit tests for `scripts/`; `cd worker && npm test` for the subscribe Worker's own suite

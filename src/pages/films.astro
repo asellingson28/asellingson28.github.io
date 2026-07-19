@@ -1,93 +1,199 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import letterboxd from '../data/letterboxd.json';
-import Quote from '../components/Quote.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import letterboxd from "../data/letterboxd.json";
+import Quote from "../components/Quote.astro";
+import Pagination from "../components/Pagination.astro";
 
 // snapshot written by `npm run fetch:media`; fetchedAt only changes when the diary does.
 // The RSS feed only carries the ~50 most recent diary entries.
 const { films, favorites, watchlist } = letterboxd;
 const profileUrl = `https://letterboxd.com/${letterboxd.username}/`;
-const updated = letterboxd.fetchedAt.slice(0, 16).replace('T', ' · ') + ' utc';
+const diaryUrl = `${profileUrl}films/diary/`;
+const watchlistUrl = `${profileUrl}watchlist/`;
+const updated = letterboxd.fetchedAt.slice(0, 16).replace("T", " · ") + " utc";
+
+// 7 columns × 2 rows per page — matches the fixed 7-column grid in BookGrid
+const PAGE_SIZE = 14;
+const diaryPages = Math.ceil(films.length / PAGE_SIZE);
+const watchlistPages = Math.ceil(watchlist.length / PAGE_SIZE);
 
 const fmtDate = (iso: string | null) =>
   iso
-    ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        timeZone: 'UTC',
+    ? new Date(iso + "T00:00:00Z").toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
       })
     : null;
 
 // letterboxd ratings come in half-star steps
-const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
+const stars = (r: number) => "★".repeat(Math.floor(r)) + (r % 1 ? "½" : "");
 ---
-<BaseLayout title="Watching" description="Films I've watched recently, pulled from my Letterboxd diary.">
+
+<BaseLayout
+  title="Watching"
+  description="Films I've watched recently, pulled from my Letterboxd diary."
+>
   <span class="mono-label">index / 05</span>
   <h1>Watching</h1>
   <p class="lede">
-    Recent entries from my <a href={profileUrl} target="_blank" rel="noopener noreferrer">Letterboxd diary</a>.
+    Recent entries from my <a
+      href={profileUrl}
+      target="_blank"
+      rel="noopener noreferrer">Letterboxd diary</a
+    >.
   </p>
   <p class="mono-label updated-top">most recent update / {updated}</p>
   <Quote cite="— Robert Grainier, Train Dreams">
     The world needs a hermit in the woods as much as a preacher in a pulpit.
   </Quote>
-  {favorites.length > 0 && (
-    <section class="favorites">
-      <h2 class="mono-label section-label">four favorites</h2>
-      <ul class="favorites-grid">
-        {favorites.map((film) => (
-          <li class="favorite">
-            <a href={film.link} target="_blank" rel="noopener noreferrer">
-              {film.poster && <img class="favorite-poster" src={film.poster} alt={`Poster for ${film.title}`} loading="lazy" referrerpolicy="no-referrer" />}
-              <span class="favorite-title">{film.title}{film.year && <span class="film-year"> ({film.year})</span>}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )}
+  {
+    favorites.length > 0 && (
+      <section class="favorites">
+        <h2 class="mono-label section-label">four favorites</h2>
+        <ul class="favorites-grid">
+          {favorites.map((film) => (
+            <li class="favorite">
+              <a href={film.link} target="_blank" rel="noopener noreferrer">
+                {film.poster && (
+                  <img
+                    class="favorite-poster"
+                    src={film.poster}
+                    alt={`Poster for ${film.title}`}
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                  />
+                )}
+                <span class="favorite-title">
+                  {film.title}
+                  {film.year && <span class="film-year"> ({film.year})</span>}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
 
   <section>
-    <h2 class="mono-label section-label">diary / last {String(films.length).padStart(2, '0')}</h2>
-    <ul class="film-grid">
-      {films.map((film) => (
-        <li class="film">
-          <a href={film.link} target="_blank" rel="noopener noreferrer">
-            {film.poster && <img class="film-poster" src={film.poster} alt={`Poster for ${film.title}`} loading="lazy" referrerpolicy="no-referrer" />}
-          </a>
-          <a class="film-title" href={film.link} target="_blank" rel="noopener noreferrer">
-            {film.title}{film.year && <span class="film-year"> ({film.year})</span>}
-          </a>
-          <span class="mono-label film-row">
-            {film.watchedDate && <span>{fmtDate(film.watchedDate)}</span>}
-            {film.rating && <span class="stars" aria-label={`Rated ${film.rating} of 5`}>{stars(film.rating)}</span>}
-            {film.liked && <span class="liked" aria-label="Liked">♥</span>}
-            {film.rewatch && <span class="rewatch">rewatch</span>}
-          </span>
-          {film.review && <p class="film-review">{film.review}</p>}
-        </li>
-      ))}
-    </ul>
-  </section>
-  
-  {watchlist.length > 0 && (
-    <section>
-      <h2 class="mono-label section-label">watchlist / top {String(watchlist.length).padStart(2, '0')} most popular</h2>
-      <ul class="film-grid">
-        {watchlist.map((film) => (
-          <li class="film">
+    <h2 class="mono-label section-label">
+      diary / last {String(films.length).padStart(2, "0")}
+      <a
+        class="shelf-link"
+        href={diaryUrl}
+        target="_blank"
+        rel="noopener noreferrer">view on Letterboxd →</a
+      >
+    </h2>
+    <ul class="film-grid" id="diary-grid">
+      {
+        films.map((film, i) => (
+          <li
+            class:list={[
+              "film",
+              { "is-hidden": Math.floor(i / PAGE_SIZE) + 1 !== 1 },
+            ]}
+            data-page={Math.floor(i / PAGE_SIZE) + 1}
+            title={film.review ?? undefined}
+          >
             <a href={film.link} target="_blank" rel="noopener noreferrer">
-              {film.poster && <img class="film-poster" src={film.poster} alt={`Poster for ${film.title}`} loading="lazy" referrerpolicy="no-referrer" />}
+              {film.poster && (
+                <img
+                  class="film-poster"
+                  src={film.poster}
+                  alt={`Poster for ${film.title}`}
+                  loading="lazy"
+                  referrerpolicy="no-referrer"
+                />
+              )}
             </a>
-            <a class="film-title" href={film.link} target="_blank" rel="noopener noreferrer">
-              {film.title}{film.year && <span class="film-year"> ({film.year})</span>}
+            <a
+              class="film-title"
+              href={film.link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {film.title}
+              {film.year && <span class="film-year"> ({film.year})</span>}
             </a>
+            <span class="mono-label film-row">
+              {film.watchedDate && <span>{fmtDate(film.watchedDate)}</span>}
+              {film.rating && (
+                <span class="stars" aria-label={`Rated ${film.rating} of 5`}>
+                  {stars(film.rating)}
+                </span>
+              )}
+              {film.liked && (
+                <span class="liked" aria-label="Liked">
+                  ♥
+                </span>
+              )}
+              {film.rewatch && <span class="rewatch">rewatch</span>}
+            </span>
           </li>
-        ))}
-      </ul>
-    </section>
-  )}
+        ))
+      }
+    </ul>
+    <Pagination pages={diaryPages} gridId="diary-grid" label="Diary pages" />
+  </section>
+
+  {
+    watchlist.length > 0 && (
+      <section>
+        <h2 class="mono-label section-label">
+          watchlist / top {String(watchlist.length).padStart(2, "0")} most
+          popular
+          <a
+            class="shelf-link"
+            href={watchlistUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            view on Letterboxd →
+          </a>
+        </h2>
+        <ul class="film-grid" id="watchlist-grid">
+          {watchlist.map((film, i) => (
+            <li
+              class:list={[
+                "film",
+                { "is-hidden": Math.floor(i / PAGE_SIZE) + 1 !== 1 },
+              ]}
+              data-page={Math.floor(i / PAGE_SIZE) + 1}
+            >
+              <a href={film.link} target="_blank" rel="noopener noreferrer">
+                {film.poster && (
+                  <img
+                    class="film-poster"
+                    src={film.poster}
+                    alt={`Poster for ${film.title}`}
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                  />
+                )}
+              </a>
+              <a
+                class="film-title"
+                href={film.link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {film.title}
+                {film.year && <span class="film-year"> ({film.year})</span>}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <Pagination
+          pages={watchlistPages}
+          gridId="watchlist-grid"
+          label="Watchlist pages"
+        />
+      </section>
+    )
+  }
 
   <footer class="data-footer">
     <span class="mono-label">source / letterboxd rss</span>
@@ -96,15 +202,30 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
 </BaseLayout>
 
 <style>
-  .lede { color: var(--color-text-dim); }
-  .lede a { color: var(--color-blue-bright); }
-  .lede a:hover { color: var(--color-gold-bright); }
+  .lede {
+    color: var(--color-text-dim);
+  }
+  .lede a {
+    color: var(--color-blue-bright);
+  }
+  .lede a:hover {
+    color: var(--color-gold-bright);
+  }
 
-  .updated-top { margin: var(--space-1) 0 0; color: var(--color-text-faint); }
+  .updated-top {
+    margin: var(--space-1) 0 0;
+    color: var(--color-text-faint);
+  }
 
-  section { margin-top: var(--space-4); }
+  section {
+    margin-top: var(--space-4);
+  }
 
   .section-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-2);
     color: var(--color-gold);
     border-bottom: 1px solid var(--color-line);
     padding-bottom: var(--space-1);
@@ -113,10 +234,18 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
     font-weight: 400;
   }
 
+  .shelf-link {
+    color: var(--color-text-faint);
+    font-weight: 400;
+  }
+  .shelf-link:hover {
+    color: var(--color-blue-bright);
+  }
+
   .favorites-grid {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(4, minmax(160px, 260px));
     gap: var(--space-3);
@@ -125,30 +254,42 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    align-items: center;
   }
   .favorite-poster {
-    width: 100%;
+    width: 70%;
     aspect-ratio: 2 / 3;
     object-fit: cover;
     display: block;
     border: 1px solid var(--color-line);
   }
-  .favorite a:hover .favorite-poster { border-color: var(--color-gold); }
+  .favorite a:hover .favorite-poster {
+    border-color: var(--color-gold);
+  }
   .favorite-title {
     font-family: var(--font-display);
     font-size: 1.05rem;
     line-height: 1.3;
     color: var(--color-text);
   }
-  .favorite a:hover .favorite-title { color: var(--color-gold-bright); }
+  .favorite a:hover .favorite-title {
+    color: var(--color-gold-bright);
+  }
 
   .film-grid {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: var(--space-3) var(--space-2);
+    grid-template-columns: repeat(7, 100px);
+    width: fit-content;
+    gap: var(--space-2) var(--space-4);
+  }
+  @media (max-width: 700px) {
+    .film-grid {
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      width: 100%;
+    }
   }
   .film {
     display: flex;
@@ -163,17 +304,24 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
     display: block;
     border: 1px solid var(--color-line);
   }
-  .film a:hover .film-poster { border-color: var(--color-gold); }
+  .film a:hover .film-poster {
+    border-color: var(--color-gold);
+  }
 
   .film-title {
     font-family: var(--font-display);
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     line-height: 1.3;
     color: var(--color-text);
     margin-top: 0.2rem;
   }
-  .film-title:hover { color: var(--color-gold-bright); }
-  .film-year { color: var(--color-text-dim); font-size: 0.85em; }
+  .film-title:hover {
+    color: var(--color-gold-bright);
+  }
+  .film-year {
+    color: var(--color-text-dim);
+    font-size: 0.85em;
+  }
 
   .film-row {
     display: flex;
@@ -181,24 +329,17 @@ const stars = (r: number) => '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '');
     align-items: baseline;
     flex-wrap: wrap;
   }
-  .stars { color: var(--color-gold); letter-spacing: 0.1em; }
-  .liked { color: var(--color-gold-bright); }
+  .stars {
+    color: var(--color-gold);
+    letter-spacing: 0.1em;
+  }
+  .liked {
+    color: var(--color-gold-bright);
+  }
   .rewatch {
     color: var(--color-gold);
     border: 1px solid var(--color-gold);
     padding: 0.05rem 0.35rem;
-  }
-
-  .film-review {
-    margin: 0.15rem 0 0;
-    font-size: 0.8rem;
-    line-height: 1.5;
-    color: var(--color-text-dim);
-    white-space: pre-line;
-    display: -webkit-box;
-    -webkit-line-clamp: 6;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
 
   .data-footer {

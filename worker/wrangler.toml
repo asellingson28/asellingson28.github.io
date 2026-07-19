@@ -7,3 +7,10 @@ compatibility_date = "2026-07-11"
 kv_namespaces = [
   { binding = "SUBSCRIBERS", id = "be7517e85c1749c38f3a6cd244d7864c" }
 ]
+
+# Sends console.log output (see logSubscribeEvent in src/index.js) to the
+# dashboard's Logs tab, queryable after the fact — without this, the only way
+# to see why a signup was silently dropped is a live `wrangler tail` session
+# running at the exact moment it happens.
+[observability]
+enabled = true

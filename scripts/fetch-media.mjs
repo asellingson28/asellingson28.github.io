@@ -89,6 +89,34 @@ async function fetchShelf(shelf) {
   return books;
 }
 
+// The shelf feeds above carry no reading-progress data at all. Progress only
+// shows up in the user's activity/updates feed, as a `UserStatus` item
+// whenever Goodreads' "update progress" feature is used ("<name> is on page
+// X of Y of <title>"). Unlike list_rss this endpoint needs no API key. It
+// only carries the ~10 most recent activity items (mixed in with shelf
+// moves, comments, etc.), so a book with no recent progress update simply
+// won't have an entry here — that's expected, not a bug, and older progress
+// on a book naturally ages out as new activity pushes it off the feed.
+async function fetchReadingProgress() {
+  const xml = await fetchXml(`https://www.goodreads.com/user/updates_rss/${GOODREADS_USER_ID}`);
+  const progress = new Map();
+  for (const item of items(xml)) {
+    if (!pick(item, 'guid').startsWith('UserStatus')) continue;
+    const match = pick(item, 'title')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .match(/is on page (\d+) of (\d+) of/i);
+    if (!match) continue;
+    const bookId = pick(item, 'description').match(/\/book\/show\/(\d+)/)?.[1];
+    if (!bookId) continue;
+    // feed is newest-first; keep only the first (most recent) status per book
+    if (!progress.has(bookId)) {
+      progress.set(bookId, { currentPage: Number(match[1]), totalPages: Number(match[2]) });
+    }
+  }
+  return progress;
+}
+
 // --- GitHub --------------------------------------------------------------
 
 async function fetchGithubRepos() {
@@ -425,8 +453,9 @@ const fetchedAt = new Date().toISOString();
 
 const [
   read,
-  currentlyReading,
+  rawCurrentlyReading,
   toRead,
+  readingProgress,
   rawFilms,
   { favorites, watchlist, diaryPosters },
   repos,
@@ -436,12 +465,19 @@ const [
   fetchShelf('read'),
   fetchShelf('currently-reading'),
   fetchShelf('to-read'),
+  fetchReadingProgress(),
   fetchFilms(),
   fetchFavoritesAndWatchlist(),
   fetchGithubRepos(),
   fetchContributionCalendar(),
   fetchContributedRepos(),
 ]);
+
+const currentlyReading = rawCurrentlyReading.map((book) => {
+  const bookId = book.link.split('/').pop();
+  const progress = readingProgress.get(bookId);
+  return progress ? { ...book, ...progress } : book;
+});
 
 const byRecency = (a, b) => (b.readAt ?? b.addedAt ?? '').localeCompare(a.readAt ?? a.addedAt ?? '');
 read.sort(byRecency);

@@ -1,0 +1,25 @@
+name: Unit Tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  test:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Run script/mail-theme unit tests
+      run: npm run test:unit
+    - name: Install worker dependencies
+      run: npm ci
+      working-directory: worker
+    - name: Run subscribe Worker unit tests
+      run: npm test
+      working-directory: worker

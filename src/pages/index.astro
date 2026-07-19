@@ -2,7 +2,35 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Quote from '../components/Quote.astro';
 import { Image } from "astro:assets";
+import { getCollection } from 'astro:content';
 import me from "../content/imgs/me.JPG";
+import letterboxd from '../data/letterboxd.json';
+import goodreads from '../data/goodreads.json';
+import { renderInlineMarkdown, stripMarkdown } from '../lib/inline-markdown.mjs';
+
+// same draft rule as /blog: dev shows drafts (so they're editable there),
+// builds never do — re-sorted here rather than trusted to already be sorted,
+// since that's what keeps this always resolving to the true latest post
+const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || data.draft !== true);
+const latestPost = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())[0];
+
+// letterboxd diary is already re-sorted most-recent-first by fetch-media.mjs
+const latestFilm = letterboxd.films[0];
+// goodreads currently-reading shelf, most recently added first
+const currentlyReading = goodreads.currentlyReading;
+
+const fmtPostDate = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+const fmtIsoDate = (iso: string | null) =>
+  iso
+    ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'UTC',
+      })
+    : null;
 ---
 
 <BaseLayout title="Home">
@@ -45,6 +73,85 @@ import me from "../content/imgs/me.JPG";
   <Quote cite="— Friedrich Nietzsche">
     Never trust a thought that occurs to you indoors.
   </Quote>
+
+  {latestPost && (
+    <section class="home-section">
+      <h2 class="mono-label section-label">writing / latest post</h2>
+      <div class="latest-post">
+        <div class="latest-post-main">
+          <a class="latest-post-title" href={`/blog/${latestPost.id}`} set:html={renderInlineMarkdown(latestPost.data.title)} />
+          <span class="mono-label post-date">{fmtPostDate(latestPost.data.date)}</span>
+          {latestPost.data.description && (
+            <p class="post-desc" set:html={renderInlineMarkdown(latestPost.data.description)} />
+          )}
+        </div>
+        {latestPost.data.cover && (
+          <figure class="latest-post-cover">
+            <Image
+              src={latestPost.data.cover}
+              alt={latestPost.data.coverCaption ? stripMarkdown(latestPost.data.coverCaption) : `Cover art for ${stripMarkdown(latestPost.data.title)}`}
+              width={560}
+            />
+            {latestPost.data.coverCaption && (
+              <figcaption class="mono-label" set:html={renderInlineMarkdown(latestPost.data.coverCaption)} />
+            )}
+          </figure>
+        )}
+      </div>
+    </section>
+  )}
+
+  {(latestFilm || currentlyReading.length > 0) && (
+    <section class="home-section">
+      <h2 class="mono-label section-label">currently</h2>
+      <div class="currently-grid">
+        {latestFilm && (
+          <div class="currently-col">
+            <span class="mono-label item-label">watching</span>
+            <a class="currently-link" href={latestFilm.link} target="_blank" rel="noopener noreferrer">
+              {latestFilm.poster && (
+                <img class="currently-poster" src={latestFilm.poster} alt={`Poster for ${latestFilm.title}`} loading="lazy" referrerpolicy="no-referrer" />
+              )}
+              <span class="currently-title">
+                {latestFilm.title}{latestFilm.year && <span class="currently-dim"> ({latestFilm.year})</span>}
+              </span>
+              {latestFilm.watchedDate && (
+                <span class="mono-label currently-date">{fmtIsoDate(latestFilm.watchedDate)}</span>
+              )}
+            </a>
+          </div>
+        )}
+
+        {currentlyReading.length > 0 && (
+          <div class="currently-col">
+            <span class="mono-label item-label">reading</span>
+            <ul class="currently-books currently-books-row">
+              {currentlyReading.map((book) => (
+                <li class="currently-book">
+                  <a class="currently-link" href={book.link} target="_blank" rel="noopener noreferrer">
+                    {book.cover && (
+                      <img class="currently-cover" src={book.cover} alt={`Cover of ${book.title}`} loading="lazy" referrerpolicy="no-referrer" />
+                    )}
+                    <span class="currently-title">
+                      {book.title}<span class="currently-dim"> — {book.author}</span>
+                    </span>
+                    {book.currentPage && book.totalPages && (
+                      <span class="progress">
+                        <span class="progress-track">
+                          <span class="progress-fill" style={`width: ${Math.round((book.currentPage / book.totalPages) * 100)}%`} />
+                        </span>
+                        <span class="mono-label progress-label">page {book.currentPage} / {book.totalPages}</span>
+                      </span>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </section>
+  )}
 </BaseLayout>
 
 <style>
@@ -67,5 +174,128 @@ import me from "../content/imgs/me.JPG";
       width: 100%;
       margin: 0 0 var(--space-4);
     }
+  }
+
+  .home-section {
+    clear: both;
+    margin-top: var(--space-5);
+  }
+
+  .section-label {
+    color: var(--color-gold);
+    border-bottom: 1px solid var(--color-line);
+    padding-bottom: var(--space-1);
+    margin: 0 0 var(--space-3);
+    font-size: 0.7rem;
+    font-weight: 400;
+  }
+
+  .latest-post {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  .latest-post-main { flex: 1; min-width: 0; }
+
+  .latest-post-title {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--color-blue-bright);
+  }
+  .latest-post-title:hover { color: var(--color-gold-bright); }
+  .post-date { display: block; margin-top: 0.3rem; }
+  .post-desc { color: var(--color-text-dim); margin-top: 0.4rem; max-width: 60ch; }
+
+  .latest-post-cover {
+    flex-shrink: 0;
+    width: 240px;
+    margin: 0;
+  }
+  .latest-post-cover img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+    border: 1px solid var(--color-line);
+  }
+  .latest-post-cover figcaption {
+    margin-top: 0.35rem;
+    text-transform: none;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 640px) {
+    .latest-post { flex-direction: column; }
+    .latest-post-cover { width: 100%; }
+    .latest-post-cover img { height: 180px; }
+  }
+
+  .currently-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+  }
+  .item-label {
+    display: block;
+    color: var(--color-text-faint);
+    margin-bottom: 0.5rem;
+  }
+
+  .currently-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .currently-poster,
+  .currently-cover {
+    width: 100px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    display: block;
+    border: 1px solid var(--color-line);
+  }
+  .currently-link:hover .currently-poster,
+  .currently-link:hover .currently-cover { border-color: var(--color-gold); }
+  .currently-title {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    line-height: 1.3;
+    color: var(--color-text);
+  }
+  .currently-link:hover .currently-title { color: var(--color-gold-bright); }
+  .currently-dim { color: var(--color-text-dim); font-size: 0.85em; }
+
+  .progress { display: block; }
+  .progress-track {
+    display: block;
+    height: 3px;
+    background: var(--color-line);
+  }
+  .progress-fill {
+    display: block;
+    height: 100%;
+    background: var(--color-gold);
+  }
+  .progress-label {
+    display: block;
+    margin-top: 0.3rem;
+    color: var(--color-text-faint);
+  }
+
+  .currently-books {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .currently-books-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .currently-book {
+    width: 100px;
   }
 </style>

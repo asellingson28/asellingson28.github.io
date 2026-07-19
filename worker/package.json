@@ -5,9 +5,12 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "test": "vitest run",
     "subscribers": "echo \"Subscribers: $(CI=true wrangler kv key get confirmed --binding SUBSCRIBERS --remote)\""
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.18.6",
+    "vitest": "^4.1.10",
     "wrangler": "^4.110.0"
   }
 }

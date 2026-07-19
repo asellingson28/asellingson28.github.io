@@ -21,14 +21,23 @@ const WORKER_URL = 'https://aselling-blog-subscribe.aselling.workers.dev';
       required
     />
     <!-- honeypot: invisible to real visitors, left empty by them; bots that
-         blindly fill every field trip this and get a silent no-op -->
+         blindly fill every field trip this and get a silent no-op.
+         Deliberately NOT named "website"/"url"/"company" etc — those names
+         cause password managers (1Password, LastPass, Chrome/Safari autofill)
+         to auto-populate the field on real visitors, silently killing their
+         signup while the form still reports success. The data-*ignore
+         attributes are exclusion hints those managers respect explicitly. -->
     <input
       class="subscribe-hp"
-      name="website"
+      name="hp-note-a1"
       type="text"
       tabindex="-1"
       autocomplete="off"
       aria-hidden="true"
+      data-1p-ignore="true"
+      data-lpignore="true"
+      data-bwignore="true"
+      data-form-type="other"
     />
     <button type="submit" id="subscribe-submit">subscribe</button>
   </div>
@@ -57,7 +66,7 @@ const WORKER_URL = 'https://aselling-blog-subscribe.aselling.workers.dev';
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: emailInput.value.trim(),
-          website: form.website.value,
+          website: form['hp-note-a1'].value,
         }),
       });
 

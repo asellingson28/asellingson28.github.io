@@ -1,0 +1,118 @@
+---
+// Client-side pager for a `<ul>`/`<ol>` grid whose `<li>` children each carry
+// a `data-page="N"` attribute (1-indexed). Targets #{gridId} by id, so it
+// works for any grid shape (book covers, film posters, ...) — the grid
+// markup and item styling stay page-specific, only the paging behavior and
+// controls are shared here.
+interface Props {
+  pages: number;
+  gridId: string;
+  label: string;
+}
+
+const { pages, gridId, label } = Astro.props;
+---
+{pages > 1 && (
+  <>
+    <nav class="pagination" data-target={gridId} aria-label={label}>
+      <button type="button" class="page-btn" data-page="prev" disabled>‹ prev</button>
+      {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+        <button
+          type="button"
+          class:list={['page-btn', 'page-num', { 'is-active': n === 1 }]}
+          data-page={n}
+          aria-current={n === 1 ? 'page' : undefined}
+        >{n}</button>
+      ))}
+      <button type="button" class="page-btn" data-page="next">next ›</button>
+    </nav>
+    {/* items beyond page 1 are marked is-hidden server-side so their images
+        never enter the browser's lazy-load candidate set before the script
+        below runs. Without JS, nothing toggles that class back off, so this
+        restores the full list rather than stranding it on page 1 with dead
+        pagination controls. */}
+    <noscript>
+      <style set:html={`#${gridId} > li.is-hidden { display: flex !important; }`} />
+    </noscript>
+  </>
+)}
+
+<script>
+  document.querySelectorAll<HTMLElement>('.pagination').forEach((nav) => {
+    const targetId = nav.dataset.target;
+    if (!targetId) return;
+    const list = document.getElementById(targetId);
+    if (!list) return;
+
+    const items = Array.from(list.querySelectorAll<HTMLLIElement>(':scope > li'));
+    const pageButtons = Array.from(nav.querySelectorAll<HTMLButtonElement>('.page-num'));
+    const prevBtn = nav.querySelector<HTMLButtonElement>('[data-page="prev"]');
+    const nextBtn = nav.querySelector<HTMLButtonElement>('[data-page="next"]');
+    const totalPages = pageButtons.length;
+    let currentPage = 1;
+
+    const showPage = (page: number) => {
+      currentPage = Math.min(Math.max(page, 1), totalPages);
+      items.forEach((li) => {
+        li.classList.toggle('is-hidden', Number(li.dataset.page) !== currentPage);
+      });
+      pageButtons.forEach((btn) => {
+        const isActive = Number(btn.dataset.page) === currentPage;
+        btn.classList.toggle('is-active', isActive);
+        if (isActive) btn.setAttribute('aria-current', 'page');
+        else btn.removeAttribute('aria-current');
+      });
+
+      // a disabled button can't hold focus -- browsers blur it immediately,
+      // dropping keyboard focus to <body>. Move focus to the now-active page
+      // button first so Tab/Shift+Tab continues from the pagination controls.
+      const activeEl = document.activeElement;
+      const focusTarget = pageButtons[currentPage - 1];
+      if (prevBtn) {
+        if (activeEl === prevBtn && currentPage === 1) focusTarget?.focus();
+        prevBtn.disabled = currentPage === 1;
+      }
+      if (nextBtn) {
+        if (activeEl === nextBtn && currentPage === totalPages) focusTarget?.focus();
+        nextBtn.disabled = currentPage === totalPages;
+      }
+    };
+
+    nav.addEventListener('click', (ev) => {
+      const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('button.page-btn');
+      if (!btn) return;
+      const val = btn.dataset.page;
+      if (val === 'prev') showPage(currentPage - 1);
+      else if (val === 'next') showPage(currentPage + 1);
+      else if (val) showPage(Number(val));
+      list.scrollIntoView({ block: 'nearest' });
+    });
+  });
+</script>
+
+<style>
+  .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+    margin-top: var(--space-3);
+  }
+  .page-btn {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    background: none;
+    color: var(--color-text-dim);
+    border: 1px solid var(--color-line);
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+  }
+  .page-btn:hover:not(:disabled) { color: var(--color-gold-bright); border-color: var(--color-gold); }
+  .page-btn:disabled { opacity: 0.35; cursor: default; }
+  .page-num.is-active {
+    background: var(--color-gold);
+    border-color: var(--color-gold);
+    color: var(--color-bg);
+  }
+</style>

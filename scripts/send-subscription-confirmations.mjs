@@ -1,15 +1,6 @@
 import { SITE_DOMAIN, EMAIL_THEME, createTransporter, maskEmail, renderEmailCard } from './lib/mail-theme.mjs';
 
-const dryRun = process.argv.slice(2).includes('--dry-run');
-
-const workerUrl = process.env.WORKER_URL;
-const syncSecret = process.env.SYNC_SECRET;
-if (!workerUrl || !syncSecret) {
-  console.error('Missing required env var(s): WORKER_URL, SYNC_SECRET');
-  process.exit(1);
-}
-
-async function fetchPending() {
+export async function fetchPending(workerUrl, syncSecret) {
   const res = await fetch(new URL('/pending', workerUrl), {
     headers: { Authorization: `Bearer ${syncSecret}` },
   });
@@ -18,7 +9,7 @@ async function fetchPending() {
   return Array.isArray(data.pending) ? data.pending : [];
 }
 
-async function markEmailed(tokens) {
+export async function markEmailed(workerUrl, syncSecret, tokens) {
   if (tokens.length === 0) return;
   const res = await fetch(new URL('/mark-emailed', workerUrl), {
     method: 'POST',
@@ -30,7 +21,7 @@ async function markEmailed(tokens) {
   }
 }
 
-function confirmationEmail({ email, token }, from, replyTo) {
+export function confirmationEmail({ email, token }, { workerUrl, from, replyTo }) {
   const confirmUrl = new URL('/confirm', workerUrl);
   confirmUrl.searchParams.set('token', token);
 
@@ -56,50 +47,75 @@ function confirmationEmail({ email, token }, from, replyTo) {
   };
 }
 
-const pending = await fetchPending();
-
-if (pending.length === 0) {
-  console.log('No pending subscription confirmations to send.');
-  process.exit(0);
-}
-
-console.log(
-  `Found ${pending.length} pending confirmation(s): ${pending.map((p) => maskEmail(p.email)).join(', ')}`
-);
-
-if (dryRun) {
-  console.log(`Dry run: would send ${pending.length} confirmation email(s).`);
-  process.exit(0);
-}
-
-const from = process.env.MAIL_FROM;
-const replyTo = process.env.MAIL_REPLY_TO || undefined;
-const transporter = createTransporter();
-await transporter.verify();
-
-const sentTokens = [];
-let anyFailed = false;
-
-for (const entry of pending) {
-  try {
-    const info = await transporter.sendMail(confirmationEmail(entry, from, replyTo));
-    const rejected = info.rejected?.filter(Boolean) ?? [];
-    if (rejected.length > 0) {
-      anyFailed = true;
-      console.error(`SMTP server rejected ${maskEmail(entry.email)}.`);
-      continue;
-    }
-    console.log(`Sent confirmation to ${maskEmail(entry.email)}.`);
-    sentTokens.push(entry.token);
-  } catch (err) {
-    anyFailed = true;
-    console.error(`Failed to send confirmation to ${maskEmail(entry.email)}: ${err.message}`);
+// Core send loop, independent of process.argv/process.exit so it can be
+// exercised in tests. Returns a summary instead of exiting — the CLI
+// entrypoint below decides what that means for the process exit code.
+export async function run({
+  dryRun = process.argv.slice(2).includes('--dry-run'),
+  workerUrl = process.env.WORKER_URL,
+  syncSecret = process.env.SYNC_SECRET,
+  from = process.env.MAIL_FROM,
+  replyTo = process.env.MAIL_REPLY_TO || undefined,
+  transporterFactory = createTransporter,
+} = {}) {
+  if (!workerUrl || !syncSecret) {
+    throw new Error('Missing required env var(s): WORKER_URL, SYNC_SECRET');
   }
+
+  const pending = await fetchPending(workerUrl, syncSecret);
+
+  if (pending.length === 0) {
+    console.log('No pending subscription confirmations to send.');
+    return { pendingCount: 0, sent: [], failed: [] };
+  }
+
+  console.log(
+    `Found ${pending.length} pending confirmation(s): ${pending.map((p) => maskEmail(p.email)).join(', ')}`
+  );
+
+  if (dryRun) {
+    console.log(`Dry run: would send ${pending.length} confirmation email(s).`);
+    return { pendingCount: pending.length, sent: [], failed: [], dryRun: true };
+  }
+
+  const transporter = transporterFactory();
+  await transporter.verify();
+
+  const sentTokens = [];
+  const failed = [];
+
+  for (const entry of pending) {
+    try {
+      const info = await transporter.sendMail(confirmationEmail(entry, { workerUrl, from, replyTo }));
+      const rejected = info.rejected?.filter(Boolean) ?? [];
+      if (rejected.length > 0) {
+        failed.push(entry);
+        console.error(`SMTP server rejected ${maskEmail(entry.email)}.`);
+        continue;
+      }
+      console.log(`Sent confirmation to ${maskEmail(entry.email)}.`);
+      sentTokens.push(entry.token);
+    } catch (err) {
+      failed.push(entry);
+      console.error(`Failed to send confirmation to ${maskEmail(entry.email)}: ${err.message}`);
+    }
+  }
+
+  await markEmailed(workerUrl, syncSecret, sentTokens);
+
+  return { pendingCount: pending.length, sent: sentTokens, failed };
 }
 
-await markEmailed(sentTokens);
-
-if (anyFailed) {
-  console.error('One or more confirmation emails failed to send; unsent entries will be retried next run.');
-  process.exit(1);
+const isMain = import.meta.url === `file://${process.argv[1]}`;
+if (isMain) {
+  try {
+    const result = await run();
+    if (result.failed.length > 0) {
+      console.error('One or more confirmation emails failed to send; unsent entries will be retried next run.');
+      process.exit(1);
+    }
+  } catch (err) {
+    console.error(err.message);
+    process.exit(1);
+  }
 }
