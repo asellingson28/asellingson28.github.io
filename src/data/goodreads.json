@@ -1,7 +1,17 @@
 {
-  "fetchedAt": "2026-07-18T18:57:55.321Z",
+  "fetchedAt": "2026-07-19T10:43:52.922Z",
   "userId": "192886223",
   "currentlyReading": [
+    {
+      "title": "A World Without Email: Reimagining Work in an Age of Communication Overload",
+      "author": "Cal Newport",
+      "link": "https://www.goodreads.com/book/show/54326146",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1597016311l/54326146.jpg",
+      "rating": 0,
+      "readAt": null,
+      "addedAt": "2026-07-18",
+      "review": null
+    },
     {
       "title": "A Happy Death",
       "author": "Albert Camus",
@@ -22,9 +32,7 @@
       "rating": 0,
       "readAt": null,
       "addedAt": "2026-05-19",
-      "review": null,
-      "currentPage": 62,
-      "totalPages": 559
+      "review": null
     }
   ],
   "toRead": [
@@ -643,16 +651,6 @@
       "author": "Simon Sinek",
       "link": "https://www.goodreads.com/book/show/7108725",
       "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1360936414l/7108725.jpg",
-      "rating": 0,
-      "readAt": null,
-      "addedAt": "2025-08-11",
-      "review": null
-    },
-    {
-      "title": "A World Without Email: Reimagining Work in an Age of Communication Overload",
-      "author": "Cal Newport",
-      "link": "https://www.goodreads.com/book/show/54326146",
-      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1597016311l/54326146.jpg",
       "rating": 0,
       "readAt": null,
       "addedAt": "2025-08-11",
