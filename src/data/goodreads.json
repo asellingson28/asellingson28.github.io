@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-19T10:43:52.922Z",
+  "fetchedAt": "2026-07-20T11:59:15.629Z",
   "userId": "192886223",
   "currentlyReading": [
     {
@@ -10,7 +10,9 @@
       "rating": 0,
       "readAt": null,
       "addedAt": "2026-07-18",
-      "review": null
+      "review": null,
+      "currentPage": 30,
+      "totalPages": 320
     },
     {
       "title": "A Happy Death",

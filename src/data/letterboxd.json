@@ -1,7 +1,62 @@
 {
-  "fetchedAt": "2026-07-18T10:41:22.063Z",
+  "fetchedAt": "2026-07-20T11:59:15.629Z",
   "username": "aselling",
   "films": [
+    {
+      "title": "Final Destination",
+      "year": 2000,
+      "link": "https://letterboxd.com/aselling/film/final-destination/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/4/7/0/6/8/47068-final-destination-0-600-0-900-crop.jpg?v=cde2a9e624",
+      "rating": null,
+      "liked": true,
+      "rewatch": false,
+      "watchedDate": "2026-07-20",
+      "review": "watching this a day after a 15 hour flight day of plane hopping kept me in a state of surrealist, feverdreameqsue, PTSD hallucination. \n\nwhoever chose the name clear rivers deserves an emmy"
+    },
+    {
+      "title": "Flower",
+      "year": 2017,
+      "link": "https://letterboxd.com/aselling/film/flower-2017/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/3/5/5/1/8/3/355183-flower-0-600-0-900-crop.jpg?v=69ce583655",
+      "rating": null,
+      "liked": false,
+      "rewatch": false,
+      "watchedDate": "2026-07-19",
+      "review": "part who knows of getting shitty hulu movies off my watch list. not great very 2000s in our developing era... like we dont need pixie girls in this day and age. \n\nwhat was Mark Scout's non-severed self doing in this??"
+    },
+    {
+      "title": "The Director's Notebook: The Cinematic Sleight of Hand of Christopher Nolan",
+      "year": 2007,
+      "link": "https://letterboxd.com/aselling/film/the-directors-notebook-the-cinematic-sleight-of-hand-of-christopher-nolan/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/6/2/6/7/2/1/626721-the-director-s-notebook-the-cinematic-sleight-of-hand-of--0-600-0-900-crop.jpg?v=56753eff77",
+      "rating": null,
+      "liked": false,
+      "rewatch": false,
+      "watchedDate": "2026-07-19",
+      "review": "20 years of progress from this to the odyssey is truly present with Nolan's work"
+    },
+    {
+      "title": "The Odyssey: The Making of an Epic",
+      "year": 2026,
+      "link": "https://letterboxd.com/aselling/film/the-odyssey-the-making-of-an-epic/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/1/5/9/8/0/6/9/1598069-the-odyssey-the-making-of-an-epic-0-600-0-900-crop.jpg?v=9cf17d19d6",
+      "rating": null,
+      "liked": true,
+      "rewatch": false,
+      "watchedDate": "2026-07-19",
+      "review": "They kept saying the term ambition, and I think it was one of the highest qualities of ambition ever delivered. A large scale film that can touch the darkest parts of your heart, just what the world needed to keep film alive....the rigging that they did to basically turn [Polyphemus's Cave] into a natural soundstage... I don't know any other director who would try it"
+    },
+    {
+      "title": "The Sheep Detectives",
+      "year": 2026,
+      "link": "https://letterboxd.com/aselling/film/the-sheep-detectives/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/1/1/8/3/1/3/5/1183135-the-sheep-detectives-0-600-0-900-crop.jpg?v=c7b622176e",
+      "rating": null,
+      "liked": true,
+      "rewatch": false,
+      "watchedDate": "2026-07-19",
+      "review": "This review may contain spoilers.\n\nchoosing to believe that when i die i will become a cloud"
+    },
     {
       "title": "The Odyssey",
       "year": 2026,
@@ -463,61 +518,6 @@
       "rewatch": false,
       "watchedDate": "2026-06-11",
       "review": "no way this was played by the plane guy from Tenet"
-    },
-    {
-      "title": "Ghostbusters",
-      "year": 1984,
-      "link": "https://letterboxd.com/aselling/film/ghostbusters/",
-      "poster": "https://a.ltrbxd.com/resized/alternative-poster/6/1/6/6/p/v40zWxWqvDAoVSDIJfG3SEZfOD5-0-600-0-900-crop.jpg?v=4aedfc1037",
-      "rating": null,
-      "liked": true,
-      "rewatch": true,
-      "watchedDate": "2026-06-10",
-      "review": "He got slimed!That's great, Ray. Save some for me ;)genuine peak.\nsidenote I knew this is where don't cross the streams was from."
-    },
-    {
-      "title": "Obsession",
-      "year": 2025,
-      "link": "https://letterboxd.com/aselling/film/obsession-2025/3/",
-      "poster": "https://a.ltrbxd.com/resized/alternative-poster/1/2/3/4/4/7/2/p/jyU5KqvPOv1fDqKWc0woCw7Yk8H-0-600-0-900-crop.jpg?v=c3cce253f1",
-      "rating": null,
-      "liked": true,
-      "rewatch": true,
-      "watchedDate": "2026-06-09",
-      "review": "may 2026 saw a rise in the purchase of toblerone bars"
-    },
-    {
-      "title": "Obsession",
-      "year": 2025,
-      "link": "https://letterboxd.com/aselling/film/obsession-2025/2/",
-      "poster": "https://a.ltrbxd.com/resized/alternative-poster/1/2/3/4/4/7/2/p/o8bcymsakK9YtqxiJT8QDfrpyTs-0-600-0-900-crop.jpg?v=71874d3d83",
-      "rating": null,
-      "liked": true,
-      "rewatch": true,
-      "watchedDate": "2026-06-08",
-      "review": "And everyone in this room will die without feeling an ounce of of sensation that I have felt with my bear...one thing I noticed: Nikki reads a book upside-down in a scene, symbolizing how backwards their love is. Loved DVA!!!"
-    },
-    {
-      "title": "Portrait of a Lady on Fire",
-      "year": 2019,
-      "link": "https://letterboxd.com/aselling/film/portrait-of-a-lady-on-fire/",
-      "poster": "https://a.ltrbxd.com/resized/alternative-poster/4/6/0/8/3/0/p/brYql72LnXNcecodypOlcc0ehCF-0-600-0-900-crop.jpg?v=98cc0adc4b",
-      "rating": null,
-      "liked": true,
-      "rewatch": false,
-      "watchedDate": "2026-06-06",
-      "review": "In solitude, I felt the liberty you spoke of. \n\nBut I also felt your absence.Genuinely the most attached I have felt to romance film in a while. Similar vibes to (500) Days of Summer and Atonement. But what I especially loved was how art and fire was a representation of the fleeting nature and impermanence of love. Not a cliché, but an unparalleled expression of love through silence. \n\nPotential parallels to Dorian Gray, not sure... Left in tears. Someone else described this as that feeling of staring at a crackling fire, and that is beyond accurate. Those last 15 minutes had me sniffling and I am half convinced I was the only one. Rose instantly to the top four and might stay there. My appreciation for art triumphs any dopamine-seeking movie.at one point, we stop"
-    },
-    {
-      "title": "Carrie",
-      "year": 1976,
-      "link": "https://letterboxd.com/aselling/film/carrie-1976/",
-      "poster": "https://a.ltrbxd.com/resized/alternative-poster/4/8/0/4/9/p/fYKaWPmI1Vkg6fV5Hbca9ll1FYr-0-600-0-900-crop.jpg?v=caf40be9b0",
-      "rating": null,
-      "liked": false,
-      "rewatch": false,
-      "watchedDate": "2026-06-05",
-      "review": "like very surreal and unsettling while also keeping the vibe of a 70s movie. Sissy Spacek did a wonderful job. not a huge fan of these religious horror movies though so not a huge fan."
     },
     {
       "title": "Oppenheimer",
