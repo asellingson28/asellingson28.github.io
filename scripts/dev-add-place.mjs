@@ -10,12 +10,27 @@
 //   renumbers src/content/places/<slug>/* with 01-, 02-… prefixes matching
 //   the given filename order (folder images are sorted by filename, see top
 //   of src/pages/travels.astro)
+// POST /__test-confirmation-email { to }
+//   sends a real test of the double opt-in confirmation email (via
+//   scripts/send-subscription-confirmations.mjs's confirmationEmail(), so it
+//   can't drift from what a real subscriber gets) — driven by the dev-only
+//   block next to SubscribeForm.astro. The confirm link points at WORKER_URL
+//   if set, else the production Worker (see src/lib/subscribe-worker.mjs),
+//   using a placeholder token — so it won't actually confirm anything real; this is
+//   a rendering/deliverability check, not an end-to-end test of the Worker's
+//   confirm flow. Still requires SMTP_*/MAIL_FROM env vars to actually send
+//   (see createTransporter in scripts/lib/mail-theme.mjs). Same
+//   localhost-only and real-SMTP-credentials caveats as
+//   /__edit-blog/send-test-email — see isLocalRequest in dev-edit-blog.mjs.
 // Never part of the built site.
 // NOTE: this file is loaded once at dev-server startup — after editing it,
 // restart `npm run dev` or requests will hit the old handler.
 import fs from 'node:fs';
 import path from 'node:path';
-import { blogEditHandler } from './dev-edit-blog.mjs';
+import { blogEditHandler, isLocalRequest, EMAIL_RE } from './dev-edit-blog.mjs';
+import { confirmationEmail } from './send-subscription-confirmations.mjs';
+import { createTransporter } from './lib/mail-theme.mjs';
+import { WORKER_URL as DEFAULT_WORKER_URL } from '../src/lib/subscribe-worker.mjs';
 
 const PLACES_DIR = path.resolve('src/content/places');
 const KINDS = ['event', 'travel', 'lived', 'want-to-go', 'third-place'];
@@ -32,6 +47,43 @@ export default function devAddPlace() {
     name: 'dev-add-place',
     configureServer(server) {
       server.middlewares.use('/__edit-blog', blogEditHandler());
+      server.middlewares.use('/__test-confirmation-email', (req, res) => {
+        const reply = (code, payload) => {
+          res.statusCode = code;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify(payload));
+        };
+        if (req.method !== 'POST') return reply(405, { error: 'POST only' });
+        if (!isLocalRequest(req)) return reply(403, { error: 'only available from localhost' });
+
+        let raw = '';
+        req.on('data', (c) => (raw += c));
+        req.on('end', async () => {
+          let p;
+          try {
+            p = JSON.parse(raw);
+          } catch {
+            return reply(400, { error: 'invalid JSON' });
+          }
+          const to = String(p.to ?? '').trim().toLowerCase();
+          if (!EMAIL_RE.test(to)) return reply(400, { error: 'enter a valid email address' });
+
+          const workerUrl = process.env.WORKER_URL || DEFAULT_WORKER_URL;
+
+          try {
+            const transporter = createTransporter();
+            await transporter.sendMail(
+              confirmationEmail(
+                { email: to, token: 'dev-test-token' },
+                { workerUrl, from: process.env.MAIL_FROM, replyTo: process.env.MAIL_REPLY_TO || undefined }
+              )
+            );
+          } catch (err) {
+            return reply(500, { error: err instanceof Error ? err.message : 'send failed' });
+          }
+          reply(200, { ok: true });
+        });
+      });
       server.middlewares.use('/__add-place', (req, res) => {
         const reply = (code, payload) => {
           res.statusCode = code;

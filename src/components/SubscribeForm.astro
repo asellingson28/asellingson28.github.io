@@ -5,7 +5,7 @@
 // Double opt-in: submitting here only queues a confirmation email — the
 // address isn't added to the send list until that link is clicked.
 //
-const WORKER_URL = 'https://aselling-blog-subscribe.aselling.workers.dev';
+import { WORKER_URL } from '../lib/subscribe-worker.mjs';
 ---
 
 <form class="subscribe-form" id="subscribe-form" novalidate>
@@ -44,6 +44,16 @@ const WORKER_URL = 'https://aselling-blog-subscribe.aselling.workers.dev';
   <p class="subscribe-status mono-label" id="subscribe-status" role="status" aria-live="polite"></p>
 </form>
 
+{import.meta.env.DEV && (
+  <div class="dev-confirm-test">
+    <span class="mono-label">dev: test confirmation email</span>
+    <div class="dev-confirm-test-row">
+      <input type="email" id="test-confirm-email" placeholder="dummy@address.com" title="Address to send a real test copy of the confirmation email to" />
+      <button type="button" id="send-confirm-test" class="dev-btn">send test</button>
+    </div>
+  </div>
+)}
+
 <script define:vars={{ WORKER_URL }}>
   const form = document.getElementById('subscribe-form');
   const emailInput = document.getElementById('subscribe-email');
@@ -80,6 +90,42 @@ const WORKER_URL = 'https://aselling-blog-subscribe.aselling.workers.dev';
       submitBtn.disabled = false;
     }
   });
+</script>
+
+<script>
+  // dev-only "test the confirmation email" trigger — import.meta.env.DEV is
+  // statically false in builds, so none of this ships
+  if (import.meta.env.DEV) {
+    document.getElementById('send-confirm-test')?.addEventListener('click', async () => {
+      const emailInput = document.getElementById('test-confirm-email') as HTMLInputElement;
+      const to = emailInput.value.trim();
+      if (!to) {
+        alert('Enter an email address to send the test to.');
+        emailInput.focus();
+        return;
+      }
+
+      const button = document.getElementById('send-confirm-test') as HTMLButtonElement;
+      button.disabled = true;
+      button.textContent = 'sending…';
+      try {
+        const res = await fetch('/__test-confirmation-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to }),
+        });
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({ error: res.statusText }));
+          alert(`Could not send test email: ${error}`);
+          return;
+        }
+        alert(`Test confirmation email sent to ${to}. Its "Confirm subscription" link is a placeholder and won't actually confirm anything.`);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'send test';
+      }
+    });
+  }
 </script>
 
 <style>
@@ -145,4 +191,35 @@ const WORKER_URL = 'https://aselling-blog-subscribe.aselling.workers.dev';
     margin: 0.6rem 0 0;
     color: var(--color-text-dim);
   }
+
+  .dev-confirm-test {
+    margin: 0.6rem 0 var(--space-3);
+    padding: var(--space-2);
+    border: 1px dashed var(--color-line-bright);
+  }
+  .dev-confirm-test-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+  }
+  .dev-confirm-test-row input[type='email'] {
+    flex: 1;
+    min-width: 200px;
+    background: var(--color-bg-inset);
+    border: 1px solid var(--color-line-bright);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.65rem;
+  }
+  .dev-btn {
+    background: none;
+    border: 1px dashed var(--color-line-bright);
+    color: var(--color-text-dim);
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+  }
+  .dev-btn:hover { color: var(--color-gold-bright); border-color: var(--color-gold); }
+  .dev-btn:disabled { opacity: 0.5; cursor: default; }
 </style>

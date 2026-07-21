@@ -69,12 +69,12 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
-          MAIL_TO: ${{ secrets.MAIL_TO }}
           MAIL_REPLY_TO: ${{ secrets.MAIL_REPLY_TO }}
           MAIL_SUBSCRIBERS: ${{ secrets.MAIL_SUBSCRIBERS }}
           MAIL_UNSUBSCRIBE: ${{ secrets.MAIL_UNSUBSCRIBE }}
           WORKER_URL: ${{ vars.WORKER_URL }}
           SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
+          UNSUBSCRIBE_SECRET: ${{ secrets.UNSUBSCRIBE_SECRET }}
           SITE_URL: https://aselling.us
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then

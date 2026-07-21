@@ -3,15 +3,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   SITE_DOMAIN,
-  stripTags,
   stripMarkdown,
   createTransporter,
   maskEmail,
-  addressFromFormatted,
   renderBlogPostEmail,
   wrapEmailPreviewDocument,
   coverRawUrl,
   coverDataUri,
+  buildUnsubscribeUrl,
+  buildBlogPostMailOptions,
 } from './lib/mail-theme.mjs';
 
 const BLOG_DIR = 'src/content/blog';
@@ -186,14 +186,6 @@ function splitRecipients(value) {
     .filter(Boolean);
 }
 
-function unsubscribeUrl(from) {
-  return (
-    process.env.MAIL_UNSUBSCRIBE ||
-    process.env.UNSUBSCRIBE_URL ||
-    `mailto:${addressFromFormatted(from)}?subject=unsubscribe`
-  );
-}
-
 // Self-serve signups (via the Cloudflare Worker subscribe form) are additive
 // to the manually-managed MAIL_SUBSCRIBERS secret. If the Worker is
 // unreachable or unconfigured, fall back to just the manual list rather than
@@ -235,37 +227,28 @@ function renderPostEmailHtml(post, preview, unsubscribe, coverUrl) {
   });
 }
 
-function mailForPost(post, subscribers) {
-  const from = process.env.MAIL_FROM;
-  const to = process.env.MAIL_TO || from;
-  const replyTo = process.env.MAIL_REPLY_TO || undefined;
-  const unsubscribe = unsubscribeUrl(from);
+// One recipient per send (rather than one bcc'd blast) so each subscriber
+// gets their own buildUnsubscribeUrl() token — a shared link can't identify
+// which address to remove. Message construction (subject/text/html/headers)
+// is shared with dev-edit-blog.mjs's /send-test-email via
+// buildBlogPostMailOptions so the two can't drift apart.
+function mailForPost(post, recipient) {
+  const unsubscribe = buildUnsubscribeUrl(recipient);
   const preview = post.description || `A new post is live on ${new URL(post.url).hostname}.`;
   const coverUrl = coverRawUrl(post.file, post.cover);
 
-  return {
-    from,
-    to,
-    bcc: subscribers,
-    replyTo,
-    subject: `New post: ${stripMarkdown(post.title)}`,
-    text: [
-      stripMarkdown(post.title),
-      '',
-      stripMarkdown(stripTags(preview)),
-      '',
-      `Read it here: ${post.url}`,
-      '',
-      `Unsubscribe: ${unsubscribe}`,
-    ].join('\n'),
-    html: renderPostEmailHtml(post, preview, unsubscribe, coverUrl),
-    list: {
-      unsubscribe,
-    },
-    headers: {
-      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-    },
-  };
+  return buildBlogPostMailOptions({
+    title: post.title,
+    url: post.url,
+    preview,
+    unsubscribe,
+    coverUrl,
+    coverAlt: coverUrl ? coverAlt(post) : undefined,
+    coverCaption: coverUrl ? post.coverCaption : undefined,
+    to: recipient,
+    from: process.env.MAIL_FROM,
+    replyTo: process.env.MAIL_REPLY_TO || undefined,
+  });
 }
 
 if (previewMode) {
@@ -286,8 +269,7 @@ if (previewMode) {
 
     // Deliberately skips isPublishable() — previewing a draft is the point.
     const post = toPost(file, parsed.data);
-    const from = process.env.MAIL_FROM || 'preview@example.com';
-    const unsubscribe = unsubscribeUrl(from);
+    const unsubscribe = buildUnsubscribeUrl('preview@example.com');
     const preview = post.description || `A new post is live on ${new URL(post.url).hostname}.`;
     const coverUrl = coverDataUri(post.file, post.cover);
     const html = renderPostEmailHtml(post, preview, unsubscribe, coverUrl);
@@ -346,26 +328,61 @@ if (subscribers.length === 0) {
 const transporter = createTransporter();
 await transporter.verify();
 
+// Recipients are sent to concurrently (bounded, since a huge subscriber list
+// sent one-at-a-time would serialize an SMTP round-trip per address) and each
+// send is isolated in its own try/catch — one recipient throwing (a timeout,
+// a connection drop) must not abort the rest of the list the way an
+// exception escaping a plain for-loop would. Mirrors the per-recipient
+// try/catch in send-subscription-confirmations.mjs's run().
+const SEND_CONCURRENCY = 5;
+
+async function sendPostToRecipients(post, recipients) {
+  const accepted = [];
+  const rejected = [];
+  const failed = [];
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < recipients.length) {
+      const recipient = recipients[nextIndex++];
+      try {
+        const info = await transporter.sendMail(mailForPost(post, recipient));
+        if (info.rejected?.filter(Boolean).length > 0) rejected.push(recipient);
+        else accepted.push(recipient);
+      } catch (err) {
+        failed.push(recipient);
+        console.error(`Failed to send ${post.slug} to ${maskEmail(recipient)}: ${err.message}`);
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(SEND_CONCURRENCY, recipients.length) }, worker));
+  return { accepted, rejected, failed };
+}
+
 let anyRejected = false;
 
 for (const post of posts) {
-  const info = await transporter.sendMail(mailForPost(post, subscribers));
-  const rejected = info.rejected?.filter(Boolean) ?? [];
-  const accepted = info.accepted?.filter(Boolean) ?? [];
+  const { accepted, rejected, failed } = await sendPostToRecipients(post, subscribers);
 
   console.log(
-    `Sent email for ${post.slug}: ${accepted.length} accepted (${accepted.map(maskEmail).join(', ')}), ${rejected.length} rejected. SMTP response: ${info.response}`
+    `Sent email for ${post.slug}: ${accepted.length} accepted (${accepted.map(maskEmail).join(', ')}), ${rejected.length} rejected, ${failed.length} failed to send.`
   );
 
-  if (rejected.length > 0) {
+  if (rejected.length > 0 || failed.length > 0) {
     anyRejected = true;
-    console.error(`SMTP server rejected these address(es) for ${post.slug}: ${rejected.map(maskEmail).join(', ')}`);
+    if (rejected.length > 0) {
+      console.error(`SMTP server rejected these address(es) for ${post.slug}: ${rejected.map(maskEmail).join(', ')}`);
+    }
+    if (failed.length > 0) {
+      console.error(`Sending failed outright for these address(es) for ${post.slug}: ${failed.map(maskEmail).join(', ')}`);
+    }
   }
 }
 
 if (anyRejected) {
   console.error(
-    'One or more subscriber addresses were rejected by the SMTP server. The job succeeded for at least one recipient, so this did not fail the workflow on its own — check the addresses above.'
+    'One or more subscriber addresses were rejected or failed to send. The job succeeded for at least one recipient, so this did not fail the workflow on its own — check the addresses above.'
   );
   process.exit(1);
 }

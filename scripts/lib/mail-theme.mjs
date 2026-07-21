@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import nodemailer from 'nodemailer';
@@ -125,6 +126,46 @@ export function addressFromFormatted(value) {
   return (match?.[1] ?? value ?? '').trim();
 }
 
+// HMAC-SHA256 over a domain-separated "unsubscribe:<email>" payload, hex
+// encoded. Derived, not stored — the Worker (worker/src/index.js) verifies
+// this independently via Web Crypto against the same UNSUBSCRIBE_SECRET, so
+// there's no per-subscriber token in KV to keep in sync. Must be called with
+// an already-normalized (trimmed, lowercased) email on both the signing and
+// verifying side, or tokens won't match.
+export function unsubscribeToken(email, secret) {
+  return crypto.createHmac('sha256', secret).update(`unsubscribe:${email}`).digest('hex');
+}
+
+// Builds a per-recipient one-click unsubscribe link against the Worker
+// (worker/src/index.js's /unsubscribe, verified via verifyUnsubscribeToken())
+// when both WORKER_URL and UNSUBSCRIBE_SECRET are configured. Falls back to a
+// generic mailto: (or an explicit override) otherwise — e.g. a local run
+// without the Worker secret set — so an email always has *some* unsubscribe
+// path, just not a self-service one-click link. Shared by
+// notify-blog-subscribers.mjs (real sends) and dev-edit-blog.mjs (the "send
+// test email" button) so both build the link the same way.
+// Normalizes (trims, lowercases) the email itself before signing/embedding it
+// — callers (e.g. the manually-managed MAIL_SUBSCRIBERS list, which is only
+// comma-split and trimmed, never lowercased) can't be trusted to hand this a
+// normalized address, and the Worker always lowercases the `email` query
+// param before verifying, so an un-normalized token here would never verify.
+export function buildUnsubscribeUrl(email) {
+  const normalized = String(email ?? '').trim().toLowerCase();
+  const workerUrl = process.env.WORKER_URL;
+  const secret = process.env.UNSUBSCRIBE_SECRET;
+  if (workerUrl && secret) {
+    const url = new URL('/unsubscribe', workerUrl);
+    url.searchParams.set('email', normalized);
+    url.searchParams.set('token', unsubscribeToken(normalized, secret));
+    return url.toString();
+  }
+  return (
+    process.env.MAIL_UNSUBSCRIBE ||
+    process.env.UNSUBSCRIBE_URL ||
+    `mailto:${addressFromFormatted(process.env.MAIL_FROM)}?subject=unsubscribe`
+  );
+}
+
 // Shared "odyssey" card shell used by both the new-post and confirm-subscription
 // emails: hairline gold->line->blue rule, mono eyebrow, serif title, optional
 // body copy, a bordered CTA button, hairline divider, mono footer.
@@ -206,6 +247,48 @@ export function renderBlogPostEmail({ title, url, preview, unsubscribe, coverUrl
     cta: { href: url, label: 'Read the post →' },
     footerHtml: `sent to subscribers of ${SITE_DOMAIN} &middot; <a href="${escapeHtml(unsubscribe)}" style="color:${EMAIL_THEME.textDim};">unsubscribe</a>`,
   });
+}
+
+// Builds the full nodemailer message (subject, html via renderBlogPostEmail,
+// plain-text fallback, List-Unsubscribe headers) for a "new post" email.
+// Shared by notify-blog-subscribers.mjs (real sends to subscribers) and
+// dev-edit-blog.mjs's /send-test-email (a real send to one address typed
+// into the post editor) so the test email can't drift from what a real
+// notification looks like — a `subjectPrefix` (e.g. "[TEST] ") is the only
+// place they intentionally differ.
+export function buildBlogPostMailOptions({
+  title,
+  url,
+  preview,
+  unsubscribe,
+  coverUrl,
+  coverAlt,
+  coverCaption,
+  to,
+  from,
+  replyTo,
+  subjectPrefix = '',
+  attachments,
+}) {
+  return {
+    from,
+    to,
+    replyTo,
+    subject: `${subjectPrefix}New post: ${stripMarkdown(title)}`,
+    text: [
+      stripMarkdown(title),
+      '',
+      stripMarkdown(stripTags(preview)),
+      '',
+      `Read it here: ${url}`,
+      '',
+      `Unsubscribe: ${unsubscribe}`,
+    ].join('\n'),
+    html: renderBlogPostEmail({ title, url, preview, unsubscribe, coverUrl, coverAlt, coverCaption }),
+    attachments,
+    list: { unsubscribe },
+    headers: { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+  };
 }
 
 // Wraps a rendered email fragment (from renderEmailCard/renderBlogPostEmail)

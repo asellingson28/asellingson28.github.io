@@ -4,6 +4,7 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SubscribeForm from '../../components/SubscribeForm.astro';
 import { renderInlineMarkdown, stripMarkdown } from '../../lib/inline-markdown.mjs';
+import { readingTimeLabel } from '../../lib/reading-time.mjs';
 
 // getCollection reads every .md file matched by the loader in content.config.ts
 // (in dev, drafts are included so they can be edited; builds still skip them)
@@ -79,6 +80,8 @@ const devJson = import.meta.env.DEV
           )}
           <span class="mono-label post-date">
             {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+            {' · '}
+            {readingTimeLabel(post.body)}
           </span>
           {post.data.description && <p class="post-desc" set:html={renderInlineMarkdown(post.data.description)} />}
           {post.data.tags && post.data.tags.length > 0 && (
@@ -139,7 +142,6 @@ const devJson = import.meta.env.DEV
 <script>
   // dev-only blog editor — import.meta.env.DEV is statically false in builds,
   // so none of this ships
-  import { renderInlineMarkdown } from '../../lib/inline-markdown.mjs';
 
   if (import.meta.env.DEV) {
     interface PostData {
@@ -195,8 +197,11 @@ const devJson = import.meta.env.DEV
             <div class="row">
               <button type="submit">save post</button>
               <button type="button" id="post-preview-refresh">refresh preview</button>
-              <button type="button" id="post-preview-email">preview email</button>
               <button type="button" id="post-cancel">cancel</button>
+            </div>
+            <div class="row test-email-row">
+              <input type="email" id="test-email-address" placeholder="dummy@address.com" title="Address to send a real test copy of the notification email to" />
+              <button type="button" id="post-send-test-email">send test email</button>
             </div>
           </form>
           <div id="post-preview" class="post-preview">
@@ -266,52 +271,52 @@ const devJson = import.meta.env.DEV
       document.getElementById('post-preview-refresh')?.addEventListener('click', () => updatePreview());
       updatePreview();
 
-      document.getElementById('post-preview-email')?.addEventListener('click', async () => {
-        const fd = new FormData(formEl);
-        const res = await fetch('/__edit-blog/preview-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            slug: p?.id,
-            title: fd.get('title'),
-            description: fd.get('description'),
-            coverCaption: fd.get('coverCaption'),
-          }),
-        });
-        if (!res.ok) {
-          const { error } = await res.json().catch(() => ({ error: res.statusText }));
-          alert(`Could not build email preview: ${error}`);
+      document.getElementById('post-send-test-email')?.addEventListener('click', async () => {
+        const emailInput = document.getElementById('test-email-address') as HTMLInputElement;
+        const to = emailInput.value.trim();
+        if (!to) {
+          alert('Enter an email address to send the test to.');
+          emailInput.focus();
           return;
         }
-        let { html } = await res.json();
 
-        // a cover just picked in the form hasn't been uploaded yet, so the
-        // server has no way to see it — splice in a blob URL for it here,
-        // same trick the on-page preview above uses for its cover figure
+        const fd = new FormData(formEl);
+        // a cover just picked in the form hasn't been uploaded yet, so a sent
+        // email (unlike the live on-page preview) has no blob: URL trick
+        // available to show it — only a cover already saved to disk renders
         const cover = fd.get('cover') as File | null;
         if (cover && cover.size > 0) {
-          const coverBlobUrl = URL.createObjectURL(cover);
-          const doc = new DOMParser().parseFromString(html, 'text/html');
-          const existingImg = doc.querySelector('img[data-role="cover"]');
-          if (existingImg) {
-            // caption already reflects the live form value — the server
-            // rendered it from the same request, only the image src is stale
-            existingImg.setAttribute('src', coverBlobUrl);
-          } else {
-            const captionText = String(fd.get('coverCaption') ?? '').trim();
-            const captionHtml = captionText
-              ? `<p data-role="cover-caption" style="margin:6px 0 0;font-family:'Courier New', Courier, monospace;font-size:11px;letter-spacing:0.04em;color:#565c68;">${renderInlineMarkdown(captionText)}</p>`
-              : '';
-            const titleRow = doc.querySelector('h1')?.closest('tr');
-            const coverRow = doc.createElement('tr');
-            coverRow.innerHTML = `<td style="padding:0 40px 24px;"><img data-role="cover" src="${coverBlobUrl}" alt="" width="480" style="display:block;width:100%;max-width:480px;height:auto;border:1px solid #232b38;" />${captionHtml}</td>`;
-            titleRow?.after(coverRow);
-          }
-          html = `<!doctype html>\n${doc.documentElement.outerHTML}`;
+          const proceed = confirm(
+            'The cover you just picked isn’t saved yet, so the test email will use the currently saved cover (if any) instead. Save the post first to test with the new cover. Send anyway?'
+          );
+          if (!proceed) return;
         }
 
-        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-        window.open(URL.createObjectURL(blob), '_blank');
+        const button = document.getElementById('post-send-test-email') as HTMLButtonElement;
+        button.disabled = true;
+        button.textContent = 'sending…';
+        try {
+          const res = await fetch('/__edit-blog/send-test-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              slug: p?.id,
+              title: fd.get('title'),
+              description: fd.get('description'),
+              coverCaption: fd.get('coverCaption'),
+              to,
+            }),
+          });
+          if (!res.ok) {
+            const { error } = await res.json().catch(() => ({ error: res.statusText }));
+            alert(`Could not send test email: ${error}`);
+            return;
+          }
+          alert(`Test email sent to ${to}.`);
+        } finally {
+          button.disabled = false;
+          button.textContent = 'send test email';
+        }
       });
 
       document.getElementById('insert-image-input')?.addEventListener('change', async (ev) => {
@@ -581,7 +586,7 @@ const devJson = import.meta.env.DEV
   .post-editor button[type='submit']:hover { background: var(--color-gold-bright); }
   .post-editor #post-cancel,
   .post-editor #post-preview-refresh,
-  .post-editor #post-preview-email {
+  .post-editor #post-send-test-email {
     background: none;
     border: 1px solid var(--color-line-bright);
     color: var(--color-text-dim);
@@ -594,10 +599,12 @@ const devJson = import.meta.env.DEV
   }
   .post-editor #post-cancel:hover,
   .post-editor #post-preview-refresh:hover,
-  .post-editor #post-preview-email:hover {
+  .post-editor #post-send-test-email:hover {
     color: var(--color-gold-bright);
     border-color: var(--color-gold);
   }
+  .post-editor #post-send-test-email:disabled { opacity: 0.5; cursor: default; }
+  .post-editor .test-email-row input[type='email'] { flex: 1; width: auto; }
 
   /* rendered post-editor preview — sits beside the form as its own panel,
      mirroring the real /blog/[slug] typography closely enough to catch
@@ -653,5 +660,11 @@ const devJson = import.meta.env.DEV
     text-align: center;
     text-transform: none;
     letter-spacing: 0.04em;
+  }
+  .post-preview .prose mark {
+    background: var(--color-gold);
+    color: var(--color-bg);
+    padding: 0.05em 0.2em;
+    border-radius: 2px;
   }
 </style>

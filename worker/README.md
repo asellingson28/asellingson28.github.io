@@ -24,6 +24,14 @@ npx wrangler kv namespace create SUBSCRIBERS
 # Set the SAME value here and as the GitHub repo secret SYNC_SECRET.
 npx wrangler secret put SYNC_SECRET
 
+# Signs/verifies the one-click unsubscribe links in the "new post" email
+# (scripts/notify-blog-subscribers.mjs builds them, this Worker's /unsubscribe
+# verifies them — see verifyUnsubscribeToken in src/index.js). Generate one,
+# e.g.: openssl rand -hex 32. Set the SAME value here and as the GitHub repo
+# secret UNSUBSCRIBE_SECRET. Deliberately a separate secret from SYNC_SECRET
+# so rotating one doesn't invalidate the other's links/auth.
+npx wrangler secret put UNSUBSCRIBE_SECRET
+
 npx wrangler deploy
 ```
 

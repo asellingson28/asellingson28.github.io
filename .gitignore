@@ -5,6 +5,7 @@ dist/
 .cache/
 .env
 .env.*
+!.env.local.example
 secrets.txt
 
 # Playwright

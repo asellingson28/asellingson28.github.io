@@ -4,6 +4,7 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SubscribeForm from '../../components/SubscribeForm.astro';
 import { renderInlineMarkdown, stripMarkdown } from '../../lib/inline-markdown.mjs';
+import { readingTimeLabel } from '../../lib/reading-time.mjs';
 
 // Tells Astro which pages to generate at build time — one per post.
 export async function getStaticPaths() {
@@ -21,6 +22,8 @@ const { Content } = await render(post);
   <div class="post">
     <span class="mono-label">
       {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+      {' · '}
+      {readingTimeLabel(post.body)}
     </span>
     <h1 set:html={renderInlineMarkdown(post.data.title)} />
     {post.data.tags && post.data.tags.length > 0 && (
@@ -84,6 +87,14 @@ const { Content } = await render(post);
     text-align: center;
     text-transform: none;
     letter-spacing: 0.04em;
+  }
+  /* `==highlight==` markdown (remark-flexible-markers, see astro.config.mjs)
+     — gold, not blue, since blue is already the link color */
+  .prose :global(mark) {
+    background: var(--color-gold);
+    color: var(--color-bg);
+    padding: 0.05em 0.2em;
+    border-radius: 2px;
   }
 
   .tag-list {

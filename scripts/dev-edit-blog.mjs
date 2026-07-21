@@ -20,37 +20,65 @@
 //   real site uses (title/description/tags/coverCaption via inline-markdown.mjs,
 //   body via @astrojs/markdown-remark + the site's remark plugins) so the
 //   preview can't silently drift from what the built post will look like
-// POST /__edit-blog/preview-email { slug?, title, description?, coverCaption? }
+// POST /__edit-blog/send-test-email { slug?, title, description?, coverCaption?, to }
 //   renders the not-yet-saved title/description through the same "new post"
-//   notification email template scripts/notify-blog-subscribers.mjs sends
-//   (via scripts/lib/mail-theme.mjs's renderBlogPostEmail) so the "preview
-//   email" button can't drift from what subscribers actually get; no mail is
-//   sent and the subscriber list is never touched. If the post already has a
-//   saved cover image on disk, it's inlined as a data: URI; a cover picked in
-//   the form but not yet uploaded isn't visible to this endpoint at all — the
-//   client substitutes a blob URL for that case (see post-preview-email in
-//   src/pages/blog/index.astro)
+//   notification email scripts/notify-blog-subscribers.mjs sends (via
+//   scripts/lib/mail-theme.mjs's buildBlogPostMailOptions) and actually sends
+//   it via SMTP to `to`, so the "send test email" button can't drift from
+//   what subscribers actually get and lets you eyeball it in a real inbox.
+//   Requires the same SMTP_*/MAIL_FROM env vars as
+//   notify-blog-subscribers.mjs to be set before `npm run dev`; the
+//   unsubscribe link is a real, working one (buildUnsubscribeUrl(to)) when
+//   WORKER_URL/UNSUBSCRIBE_SECRET are also set, so that flow is testable too.
+//   The subscriber list is never touched. If the post already has a saved
+//   cover image on disk, it's attached as a cid: inline image (a real MIME
+//   attachment referenced via <img src="cid:...">, not a data: URI —
+//   real inboxes like Gmail strip data: URIs from received mail as a
+//   security measure, so that only ever worked for the in-browser preview,
+//   never for an actually-sent message); a cover just picked in the form but
+//   not yet uploaded can't be included — there's no way to email a
+//   browser-only blob: URL — save the post first. Rejects any request whose
+//   TCP peer isn't loopback (see isLocalRequest) — this sends real mail
+//   through real SMTP credentials, so it must not work if the dev server is
+//   ever exposed off localhost (e.g. `astro dev --host`).
 // NOTE: loaded once at dev-server startup — restart `npm run dev` after edits.
 import fs from 'node:fs';
 import path from 'node:path';
 import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 import remarkFootnoteTitles from './remark-footnote-titles.mjs';
+import remarkFlexibleMarkers from 'remark-flexible-markers';
 import rehypeImageCaptions from './rehype-image-captions.mjs';
 import { renderInlineMarkdown } from '../src/lib/inline-markdown.mjs';
 import {
   SITE_DOMAIN,
-  renderBlogPostEmail,
-  wrapEmailPreviewDocument,
+  createTransporter,
+  buildUnsubscribeUrl,
+  buildBlogPostMailOptions,
   stripMarkdown,
-  coverDataUri,
 } from './lib/mail-theme.mjs';
+
+const TEST_EMAIL_COVER_CID = 'test-email-cover';
+
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// /send-test-email here and the confirmation-email test endpoint in
+// dev-add-place.mjs both send real mail through the site owner's SMTP
+// credentials to an address the client supplies — if `npm run dev --host`
+// ever exposes the dev server to the LAN, that would otherwise let anyone
+// reachable use it as an open relay. req.socket.remoteAddress reflects the
+// actual TCP peer, so unlike a Host/Origin header it can't be spoofed by a
+// forged request.
+export function isLocalRequest(req) {
+  const addr = req.socket.remoteAddress ?? '';
+  return addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1';
+}
 
 // created lazily (it's not free) and reused across preview requests
 let processorPromise;
 function getMarkdownProcessor() {
   if (!processorPromise)
     processorPromise = createMarkdownProcessor({
-      remarkPlugins: [remarkFootnoteTitles],
+      remarkPlugins: [remarkFootnoteTitles, [remarkFlexibleMarkers, { actionForEmptyContent: 'keep' }]],
       rehypePlugins: [rehypeImageCaptions],
     });
   return processorPromise;
@@ -172,10 +200,11 @@ export function blogEditHandler({ dir = path.resolve('src/content/blog') } = {})
       return;
     }
 
-    if (url.pathname === '/preview-email') {
+    if (url.pathname === '/send-test-email') {
+      if (!isLocalRequest(req)) return reply(403, { error: 'only available from localhost' });
       let raw = '';
       req.on('data', (chunk) => (raw += chunk));
-      req.on('end', () => {
+      req.on('end', async () => {
         let p;
         try {
           p = JSON.parse(raw);
@@ -185,18 +214,22 @@ export function blogEditHandler({ dir = path.resolve('src/content/blog') } = {})
         const title = String(p.title ?? '').trim();
         if (!title) return reply(400, { error: 'title is required' });
 
+        const to = String(p.to ?? '').trim().toLowerCase();
+        if (!EMAIL_RE.test(to)) return reply(400, { error: 'enter a valid email address' });
+
         const slug = p.slug ? slugify(String(p.slug)) : slugify(title);
         const description = String(p.description ?? '').trim();
         const coverCaption = String(p.coverCaption ?? '').trim();
         const postUrl = `https://${SITE_DOMAIN}/blog/${slug}/`;
         const preview = description || `A new post is live on ${SITE_DOMAIN}.`;
-        const unsubscribe = `mailto:example@${SITE_DOMAIN}?subject=unsubscribe`;
+        const unsubscribe = buildUnsubscribeUrl(to);
 
-        const mdFile = path.join(dir, `${slug}.md`);
-        let coverUrl;
+        let coverPath, coverUrl;
         for (const ext of IMAGE_EXTS) {
-          if (fs.existsSync(path.join(dir, `${slug}-cover${ext}`))) {
-            coverUrl = coverDataUri(mdFile, `./${slug}-cover${ext}`);
+          const candidate = path.join(dir, `${slug}-cover${ext}`);
+          if (fs.existsSync(candidate)) {
+            coverPath = candidate;
+            coverUrl = `cid:${TEST_EMAIL_COVER_CID}`;
             break;
           }
         }
@@ -206,7 +239,7 @@ export function blogEditHandler({ dir = path.resolve('src/content/blog') } = {})
             : `Cover art for ${stripMarkdown(title)}`
           : undefined;
 
-        const html = renderBlogPostEmail({
+        const mailOptions = buildBlogPostMailOptions({
           title,
           url: postUrl,
           preview,
@@ -214,9 +247,22 @@ export function blogEditHandler({ dir = path.resolve('src/content/blog') } = {})
           coverUrl,
           coverAlt,
           coverCaption: coverUrl ? coverCaption : undefined,
+          to,
+          from: process.env.MAIL_FROM,
+          replyTo: process.env.MAIL_REPLY_TO || undefined,
+          subjectPrefix: '[TEST] ',
+          attachments: coverPath
+            ? [{ filename: path.basename(coverPath), path: coverPath, cid: TEST_EMAIL_COVER_CID }]
+            : undefined,
         });
-        const doc = wrapEmailPreviewDocument(html, { title: `Email preview: ${stripMarkdown(title)}` });
-        reply(200, { html: doc });
+
+        try {
+          const transporter = createTransporter();
+          await transporter.sendMail(mailOptions);
+        } catch (err) {
+          return reply(500, { error: err instanceof Error ? err.message : 'send failed' });
+        }
+        reply(200, { ok: true });
       });
       return;
     }

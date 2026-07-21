@@ -53,7 +53,7 @@ function json(data, init = {}) {
   });
 }
 
-function htmlPage({ eyebrow, title, body }) {
+function htmlPage({ eyebrow, title, body, extraHtml = '' }) {
   const t = THEME;
   const html = `<!doctype html>
 <html lang="en">
@@ -69,6 +69,7 @@ function htmlPage({ eyebrow, title, body }) {
 <span style="font-family:'Courier New',Courier,monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${t.textFaint};">${escapeHtml(eyebrow)}</span>
 <h1 style="margin:12px 0 16px;font-family:Georgia,'Times New Roman',serif;font-weight:500;font-size:26px;line-height:1.3;color:${t.text};">${escapeHtml(title)}</h1>
 <p style="margin:0;font-size:15px;line-height:1.6;color:${t.textDim};">${escapeHtml(body)}</p>
+${extraHtml}
 <p style="margin:24px 0 0;"><a href="${SITE_ORIGIN}/blog" style="color:${t.blueBright};text-decoration:none;font-size:14px;">&larr; back to the blog</a></p>
 </div>
 </div>
@@ -82,6 +83,34 @@ function randomToken() {
   let str = '';
   for (const b of bytes) str += String.fromCharCode(b);
   return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function hexToBytes(hex) {
+  if (!/^[0-9a-f]*$/i.test(hex) || hex.length % 2 !== 0) return null;
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  return bytes;
+}
+
+// Unsubscribe tokens are HMAC-SHA256("unsubscribe:<email>", UNSUBSCRIBE_SECRET),
+// hex-encoded, derived rather than stored — mirrors
+// scripts/lib/mail-theme.mjs's unsubscribeToken(), computed independently by
+// the notify script when it builds the link. No per-subscriber KV entry
+// needed; verifying just recomputes and compares. A separate secret from
+// SYNC_SECRET on purpose: rotating SYNC_SECRET (which gates /pending,
+// /mark-emailed, /subscribers) shouldn't silently invalidate every
+// unsubscribe link already sent out.
+async function verifyUnsubscribeToken(env, email, token) {
+  const tokenBytes = hexToBytes(token);
+  if (!tokenBytes) return false;
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(env.UNSUBSCRIBE_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['verify']
+  );
+  return crypto.subtle.verify('HMAC', key, tokenBytes, new TextEncoder().encode(`unsubscribe:${email}`));
 }
 
 // Mirrors scripts/lib/mail-theme.mjs's maskEmail. Duplicated for the same
@@ -263,6 +292,56 @@ async function handleConfirm(url, env) {
   });
 }
 
+// Handles GET (a person clicking the link in the email body) and POST (RFC
+// 8058 one-click unsubscribe: a mail client's own HTTP stack POSTs here in
+// the background with no human ever seeing a browser tab). GET must never
+// mutate on its own — mail security scanners (Outlook/Defender Safe Links,
+// Proofpoint, etc.) prefetch every URL in an inbound email via GET before the
+// recipient opens it, so a GET that unsubscribed immediately would let a
+// scanner silently unsubscribe someone who never clicked anything. GET with
+// a valid token instead shows a landing page with a real "unsubscribe"
+// button whose form submits a POST back to this same URL; only that POST (or
+// the mail client's own RFC 8058 POST) actually removes the address. Always
+// responds 200 even for an invalid token, since some inbox providers treat a
+// non-2xx from a List-Unsubscribe-Post endpoint as a sender-reputation signal.
+async function handleUnsubscribe(request, url, env) {
+  const email = url.searchParams.get('email')?.trim().toLowerCase() ?? '';
+  const token = url.searchParams.get('token') ?? '';
+  const valid = Boolean(email) && Boolean(token) && (await verifyUnsubscribeToken(env, email, token));
+
+  if (!valid) {
+    logSubscribeEvent('unsubscribe_invalid_token', {});
+    return htmlPage({
+      eyebrow: 'subscribe · error',
+      title: 'Link invalid',
+      body: 'This unsubscribe link is invalid. If you meant to unsubscribe, use the link from a more recent email.',
+    });
+  }
+
+  if (request.method === 'GET') {
+    return htmlPage({
+      eyebrow: 'subscribe · unsubscribe',
+      title: 'Unsubscribe?',
+      body: `Confirm you want to stop getting emails about new posts at ${email}.`,
+      extraHtml: `<form method="POST" action="${escapeHtml(url.pathname + url.search)}" style="margin:20px 0 0;">
+<button type="submit" style="font:inherit;font-size:14px;background:none;color:${THEME.blueBright};border:1px solid ${THEME.line};padding:8px 16px;cursor:pointer;">Unsubscribe</button>
+</form>`,
+    });
+  }
+
+  const confirmed = await getConfirmed(env);
+  if (confirmed.includes(email)) {
+    await env.SUBSCRIBERS.put('confirmed', JSON.stringify(confirmed.filter((entry) => entry !== email)));
+    logSubscribeEvent('unsubscribed', { email: maskEmail(email) });
+  }
+
+  return htmlPage({
+    eyebrow: 'subscribe · unsubscribed',
+    title: "You're unsubscribed",
+    body: `${email} will no longer get emails about new posts.`,
+  });
+}
+
 async function handleSubscribers(request, env) {
   if (!requireAuth(request, env)) return json({ error: 'Unauthorized' }, { status: 401 });
   return json({ subscribers: await getConfirmed(env) });
@@ -287,6 +366,9 @@ export default {
     }
     if (url.pathname === '/confirm' && request.method === 'GET') {
       return handleConfirm(url, env);
+    }
+    if (url.pathname === '/unsubscribe' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleUnsubscribe(request, url, env);
     }
     if (url.pathname === '/subscribers' && request.method === 'GET') {
       return handleSubscribers(request, env);

@@ -1,12 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   addressFromFormatted,
+  buildUnsubscribeUrl,
   coverRawUrl,
   createTransporter,
   escapeHtml,
   maskEmail,
   renderEmailCard,
   stripTags,
+  unsubscribeToken,
   wrapEmailPreviewDocument,
 } from './mail-theme.mjs';
 
@@ -82,6 +84,78 @@ describe('renderEmailCard', () => {
   it('omits the cover/body/cta rows entirely when not provided', () => {
     const html = renderEmailCard({ eyebrow: 'e', title: 't', footerHtml: 'f' });
     expect(html).not.toContain('data-role="cover"');
+  });
+});
+
+describe('unsubscribeToken', () => {
+  it('is deterministic for the same email and secret', () => {
+    expect(unsubscribeToken('arjan@example.com', 'secret')).toBe(unsubscribeToken('arjan@example.com', 'secret'));
+  });
+
+  it('differs when the email differs', () => {
+    expect(unsubscribeToken('a@example.com', 'secret')).not.toBe(unsubscribeToken('b@example.com', 'secret'));
+  });
+
+  it('differs when the secret differs', () => {
+    expect(unsubscribeToken('arjan@example.com', 'secret-1')).not.toBe(
+      unsubscribeToken('arjan@example.com', 'secret-2')
+    );
+  });
+
+  it('is hex-encoded', () => {
+    expect(unsubscribeToken('arjan@example.com', 'secret')).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+describe('buildUnsubscribeUrl', () => {
+  const ENV_KEYS = ['WORKER_URL', 'UNSUBSCRIBE_SECRET', 'MAIL_UNSUBSCRIBE', 'UNSUBSCRIBE_URL', 'MAIL_FROM'];
+  let savedEnv;
+
+  beforeEach(() => {
+    savedEnv = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
+    for (const key of ENV_KEYS) delete process.env[key];
+  });
+
+  afterEach(() => {
+    for (const key of ENV_KEYS) {
+      if (savedEnv[key] === undefined) delete process.env[key];
+      else process.env[key] = savedEnv[key];
+    }
+  });
+
+  it('builds a Worker link with the email and a matching token when configured', () => {
+    process.env.WORKER_URL = 'https://worker.example.workers.dev';
+    process.env.UNSUBSCRIBE_SECRET = 'secret';
+
+    const url = new URL(buildUnsubscribeUrl('arjan@example.com'));
+    expect(url.origin + url.pathname).toBe('https://worker.example.workers.dev/unsubscribe');
+    expect(url.searchParams.get('email')).toBe('arjan@example.com');
+    expect(url.searchParams.get('token')).toBe(unsubscribeToken('arjan@example.com', 'secret'));
+  });
+
+  it('prefers MAIL_UNSUBSCRIBE when the Worker is not configured', () => {
+    process.env.MAIL_UNSUBSCRIBE = 'https://example.com/custom-unsubscribe';
+    expect(buildUnsubscribeUrl('arjan@example.com')).toBe('https://example.com/custom-unsubscribe');
+  });
+
+  it('falls back to a mailto: built from MAIL_FROM when nothing else is set', () => {
+    process.env.MAIL_FROM = 'Arjan <arjan@example.com>';
+    expect(buildUnsubscribeUrl('someone@example.com')).toBe('mailto:arjan@example.com?subject=unsubscribe');
+  });
+
+  it('normalizes (trims, lowercases) the email before signing and embedding it', () => {
+    process.env.WORKER_URL = 'https://worker.example.workers.dev';
+    process.env.UNSUBSCRIBE_SECRET = 'secret';
+
+    const url = new URL(buildUnsubscribeUrl('  Arjan@Example.COM  '));
+    expect(url.searchParams.get('email')).toBe('arjan@example.com');
+    expect(url.searchParams.get('token')).toBe(unsubscribeToken('arjan@example.com', 'secret'));
+  });
+
+  it('does not use the Worker link if only one of WORKER_URL/UNSUBSCRIBE_SECRET is set', () => {
+    process.env.WORKER_URL = 'https://worker.example.workers.dev';
+    process.env.MAIL_FROM = 'arjan@example.com';
+    expect(buildUnsubscribeUrl('someone@example.com')).toBe('mailto:arjan@example.com?subject=unsubscribe');
   });
 });
 

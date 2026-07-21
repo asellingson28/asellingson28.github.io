@@ -6,6 +6,7 @@ const worker = workerExports.default;
 const BASE_URL = 'https://aselling-blog-subscribe.aselling.workers.dev';
 const SITE_ORIGIN = 'https://aselling.us';
 const SYNC_SECRET = 'test-sync-secret';
+const UNSUBSCRIBE_SECRET = 'test-unsubscribe-secret';
 
 afterEach(async () => {
   await reset();
@@ -37,6 +38,21 @@ function authedPost(path, body, token = SYNC_SECRET) {
   const headers = { 'Content-Type': 'application/json' };
   if (token !== null) headers.Authorization = `Bearer ${token}`;
   return worker.fetch(`${BASE_URL}${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
+}
+
+// Mirrors unsubscribeToken() in scripts/lib/mail-theme.mjs and
+// verifyUnsubscribeToken() in src/index.js: HMAC-SHA256("unsubscribe:<email>",
+// UNSUBSCRIBE_SECRET), hex-encoded.
+async function unsubscribeToken(email, secret = UNSUBSCRIBE_SECRET) {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`unsubscribe:${email}`));
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 async function pendingEntries() {
@@ -184,6 +200,101 @@ describe('GET /confirm', () => {
   it('shows the same error page with no token at all', async () => {
     const res = await worker.fetch(`${BASE_URL}/confirm`);
     expect(await res.text()).toContain('Link expired');
+  });
+});
+
+describe('GET /unsubscribe', () => {
+  // GET must never mutate on its own — mail security scanners (Safe Links,
+  // Proofpoint, etc.) prefetch every link in an email via GET before a human
+  // ever opens it, so a GET that unsubscribed immediately would let a
+  // scanner silently unsubscribe someone who never clicked anything.
+  it('does not remove a confirmed address, and shows a confirm-unsubscribe page with a POST form', async () => {
+    await env.SUBSCRIBERS.put('confirmed', JSON.stringify(['leaving@example.com', 'staying@example.com']));
+    const token = await unsubscribeToken('leaving@example.com');
+
+    const res = await worker.fetch(`${BASE_URL}/unsubscribe?email=leaving@example.com&token=${token}`);
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('Unsubscribe?');
+    expect(html).toContain('leaving@example.com');
+    expect(html).toMatch(/<form method="POST" action="[^"]*\/unsubscribe\?email=leaving@example\.com&amp;token=/);
+
+    const confirmed = JSON.parse(await env.SUBSCRIBERS.get('confirmed'));
+    expect(confirmed).toEqual(['leaving@example.com', 'staying@example.com']);
+  });
+
+  it('rejects a token signed for a different email', async () => {
+    await env.SUBSCRIBERS.put('confirmed', JSON.stringify(['victim@example.com']));
+    const token = await unsubscribeToken('attacker@example.com');
+
+    const res = await worker.fetch(`${BASE_URL}/unsubscribe?email=victim@example.com&token=${token}`);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('Link invalid');
+
+    const confirmed = JSON.parse(await env.SUBSCRIBERS.get('confirmed'));
+    expect(confirmed).toEqual(['victim@example.com']);
+  });
+
+  it('rejects a token signed with the wrong secret', async () => {
+    await env.SUBSCRIBERS.put('confirmed', JSON.stringify(['victim@example.com']));
+    const token = await unsubscribeToken('victim@example.com', 'wrong-secret');
+
+    const res = await worker.fetch(`${BASE_URL}/unsubscribe?email=victim@example.com&token=${token}`);
+    expect(await res.text()).toContain('Link invalid');
+    expect(JSON.parse(await env.SUBSCRIBERS.get('confirmed'))).toEqual(['victim@example.com']);
+  });
+
+  it('shows an error page for a missing email or token, and mutates nothing', async () => {
+    await env.SUBSCRIBERS.put('confirmed', JSON.stringify(['victim@example.com']));
+    const token = await unsubscribeToken('victim@example.com');
+
+    const noToken = await worker.fetch(`${BASE_URL}/unsubscribe?email=victim@example.com`);
+    expect(await noToken.text()).toContain('Link invalid');
+
+    const noEmail = await worker.fetch(`${BASE_URL}/unsubscribe?token=${token}`);
+    expect(await noEmail.text()).toContain('Link invalid');
+
+    expect(JSON.parse(await env.SUBSCRIBERS.get('confirmed'))).toEqual(['victim@example.com']);
+  });
+});
+
+describe('POST /unsubscribe', () => {
+  it('removes a confirmed address and responds 200 (RFC 8058 one-click, and the confirm-form submit)', async () => {
+    await env.SUBSCRIBERS.put('confirmed', JSON.stringify(['leaving@example.com']));
+    const token = await unsubscribeToken('leaving@example.com');
+
+    const res = await worker.fetch(`${BASE_URL}/unsubscribe?email=leaving@example.com&token=${token}`, {
+      method: 'POST',
+    });
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('You&#39;re unsubscribed');
+
+    expect(JSON.parse(await env.SUBSCRIBERS.get('confirmed'))).toEqual([]);
+  });
+
+  it('is a no-op (but still 200) when the address is not in the confirmed list', async () => {
+    await env.SUBSCRIBERS.put('confirmed', JSON.stringify(['someone-else@example.com']));
+    const token = await unsubscribeToken('not-subscribed@example.com');
+
+    const res = await worker.fetch(`${BASE_URL}/unsubscribe?email=not-subscribed@example.com&token=${token}`, {
+      method: 'POST',
+    });
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain("You&#39;re unsubscribed");
+
+    const confirmed = JSON.parse(await env.SUBSCRIBERS.get('confirmed'));
+    expect(confirmed).toEqual(['someone-else@example.com']);
+  });
+
+  it('still responds 200 for an invalid token, never an error status', async () => {
+    await env.SUBSCRIBERS.put('confirmed', JSON.stringify(['victim@example.com']));
+
+    const res = await worker.fetch(`${BASE_URL}/unsubscribe?email=victim@example.com&token=bogus`, {
+      method: 'POST',
+    });
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('Link invalid');
+    expect(JSON.parse(await env.SUBSCRIBERS.get('confirmed'))).toEqual(['victim@example.com']);
   });
 });
 
