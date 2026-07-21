@@ -1,7 +1,40 @@
 {
-  "fetchedAt": "2026-07-20T11:59:15.629Z",
+  "fetchedAt": "2026-07-21T11:19:21.008Z",
   "username": "aselling",
   "films": [
+    {
+      "title": "Final Destination 3",
+      "year": 2006,
+      "link": "https://letterboxd.com/aselling/film/final-destination-3/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/4/7/3/0/6/47306-final-destination-3-0-600-0-900-crop.jpg?v=c424e0bd0d",
+      "rating": null,
+      "liked": true,
+      "rewatch": false,
+      "watchedDate": "2026-07-21",
+      "review": "This review may contain spoilers.\n\nRamona Flowers went from this Scott Pilgrim to predicting the lives of 2 dozen teens on a roller coaster. What a glow up.\n\nThat tanning bed scene was so stressful, and transitioned well into the funeral. RIP.\n\nTrain crash was comparable to the Incredible Animated one, insane. \n\nMost gory and terrifying one yet. Enjoyed it thoroughly. Reminded me hella of say cheese and die, a childhood favorite from Goosebumps."
+    },
+    {
+      "title": "Final Destination 2",
+      "year": 2003,
+      "link": "https://letterboxd.com/aselling/film/final-destination-2/",
+      "poster": "https://a.ltrbxd.com/resized/sm/upload/eh/sw/9a/g8/8joRaZ3wfcqIePImFJpgypQ71Jp-0-600-0-900-crop.jpg?v=4a3ad26442",
+      "rating": null,
+      "liked": false,
+      "rewatch": false,
+      "watchedDate": "2026-07-21",
+      "review": "This review may contain spoilers.\n\nwhy did we un-emo our favorite diva Clear Rivers??"
+    },
+    {
+      "title": "Napoleon Dynamite",
+      "year": 2004,
+      "link": "https://letterboxd.com/aselling/film/napoleon-dynamite/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/4/7/8/6/7/47867-napoleon-dynamite-0-600-0-900-crop.jpg?v=dc5d6552f9",
+      "rating": null,
+      "liked": true,
+      "rewatch": true,
+      "watchedDate": "2026-07-20",
+      "review": "RIP Albert Camus you would've loved Napoleon Dynamite"
+    },
     {
       "title": "Final Destination",
       "year": 2000,
@@ -485,39 +518,6 @@
       "rewatch": false,
       "watchedDate": "2026-06-13",
       "review": "absolutely loved this. Dustin Hoffman has a skill for playing quirky, awkward characters; after seeing Rain man (1988), I was hooked. When Ben goes to stop the bellman from ringing the bell, I was laughing for too long. This movie is mentioned in (500) Days of Summer, I had to figure out the significance. Definitely a fun feel good movie with a sparkle of erotic humor.\n\nkinda over the Simon and Garfunkel tho"
-    },
-    {
-      "title": "Heavy Eyes",
-      "year": 2022,
-      "link": "https://letterboxd.com/aselling/film/heavy-eyes/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/1/0/7/4/0/5/3/1074053-heavy-eyes-0-600-0-900-crop.jpg?v=4be5200ad8",
-      "rating": null,
-      "liked": true,
-      "rewatch": false,
-      "watchedDate": "2026-06-13",
-      "review": "Genuinely so many things to unpack in a matter of 5 minutes"
-    },
-    {
-      "title": "Contagion",
-      "year": 2011,
-      "link": "https://letterboxd.com/aselling/film/contagion/",
-      "poster": "https://a.ltrbxd.com/resized/sm/upload/a3/9l/70/5b/kbC6I0AOSLTHFA2dieyat9h8QHP-0-600-0-900-crop.jpg?v=85cf37099a",
-      "rating": null,
-      "liked": false,
-      "rewatch": false,
-      "watchedDate": "2026-06-12",
-      "review": "Matt Damon crash out part 493\n\ncrazy soundtrack for a virus movie"
-    },
-    {
-      "title": "Yesterday",
-      "year": 2019,
-      "link": "https://letterboxd.com/aselling/film/yesterday-2019/",
-      "poster": "https://a.ltrbxd.com/resized/alternative-poster/4/4/4/7/9/9/p/9fYka5CQt9nrb6LOtKicysUf9NA-0-600-0-900-crop.jpg?v=cc71970152",
-      "rating": null,
-      "liked": false,
-      "rewatch": false,
-      "watchedDate": "2026-06-11",
-      "review": "no way this was played by the plane guy from Tenet"
     },
     {
       "title": "Oppenheimer",
