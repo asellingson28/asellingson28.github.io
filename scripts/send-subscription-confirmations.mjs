@@ -21,7 +21,7 @@ export async function markEmailed(workerUrl, syncSecret, tokens) {
   }
 }
 
-export function confirmationEmail({ email, token }, { workerUrl, from, replyTo }) {
+export function confirmationEmail({ email, token }, { workerUrl, from, replyTo, logoSrc, attachments }) {
   const confirmUrl = new URL('/confirm', workerUrl);
   confirmUrl.searchParams.set('token', token);
 
@@ -43,7 +43,9 @@ export function confirmationEmail({ email, token }, { workerUrl, from, replyTo }
       bodyHtml: `<p style="margin:0;font-family:${EMAIL_THEME.fontBody};font-size:15px;line-height:1.6;color:${EMAIL_THEME.textDim};">Someone (hopefully you) asked to subscribe this address to new posts on ${SITE_DOMAIN}. Nothing is added to the list until you confirm below.</p>`,
       cta: { href: confirmUrl.toString(), label: 'Confirm subscription →' },
       footerHtml: "if this wasn't you, ignore this email — nothing is added without the link above",
+      logoSrc,
     }),
+    attachments,
   };
 }
 

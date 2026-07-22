@@ -29,7 +29,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { blogEditHandler, isLocalRequest, EMAIL_RE } from './dev-edit-blog.mjs';
 import { confirmationEmail } from './send-subscription-confirmations.mjs';
-import { createTransporter } from './lib/mail-theme.mjs';
+import { createTransporter, logoAttachment, LOGO_CID } from './lib/mail-theme.mjs';
 import { WORKER_URL as DEFAULT_WORKER_URL } from '../src/lib/subscribe-worker.mjs';
 
 const PLACES_DIR = path.resolve('src/content/places');
@@ -75,7 +75,13 @@ export default function devAddPlace() {
             await transporter.sendMail(
               confirmationEmail(
                 { email: to, token: 'dev-test-token' },
-                { workerUrl, from: process.env.MAIL_FROM, replyTo: process.env.MAIL_REPLY_TO || undefined }
+                {
+                  workerUrl,
+                  from: process.env.MAIL_FROM,
+                  replyTo: process.env.MAIL_REPLY_TO || undefined,
+                  logoSrc: `cid:${LOGO_CID}`,
+                  attachments: [logoAttachment()],
+                }
               )
             );
           } catch (err) {

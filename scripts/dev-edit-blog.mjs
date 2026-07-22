@@ -55,6 +55,8 @@ import {
   buildUnsubscribeUrl,
   buildBlogPostMailOptions,
   stripMarkdown,
+  logoAttachment,
+  LOGO_CID,
 } from './lib/mail-theme.mjs';
 
 const TEST_EMAIL_COVER_CID = 'test-email-cover';
@@ -251,9 +253,13 @@ export function blogEditHandler({ dir = path.resolve('src/content/blog') } = {})
           from: process.env.MAIL_FROM,
           replyTo: process.env.MAIL_REPLY_TO || undefined,
           subjectPrefix: '[TEST] ',
-          attachments: coverPath
-            ? [{ filename: path.basename(coverPath), path: coverPath, cid: TEST_EMAIL_COVER_CID }]
-            : undefined,
+          logoSrc: `cid:${LOGO_CID}`,
+          attachments: [
+            logoAttachment(),
+            ...(coverPath
+              ? [{ filename: path.basename(coverPath), path: coverPath, cid: TEST_EMAIL_COVER_CID }]
+              : []),
+          ],
         });
 
         try {

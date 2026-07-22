@@ -12,6 +12,7 @@ import {
   coverDataUri,
   buildUnsubscribeUrl,
   buildBlogPostMailOptions,
+  logoDataUri,
 } from './lib/mail-theme.mjs';
 
 const BLOG_DIR = 'src/content/blog';
@@ -215,7 +216,7 @@ function coverAlt(post) {
   return post.coverCaption ? stripMarkdown(post.coverCaption) : `Cover art for ${stripMarkdown(post.title)}`;
 }
 
-function renderPostEmailHtml(post, preview, unsubscribe, coverUrl) {
+function renderPostEmailHtml(post, preview, unsubscribe, coverUrl, logoSrc) {
   return renderBlogPostEmail({
     title: post.title,
     url: post.url,
@@ -224,6 +225,7 @@ function renderPostEmailHtml(post, preview, unsubscribe, coverUrl) {
     coverUrl,
     coverAlt: coverUrl ? coverAlt(post) : undefined,
     coverCaption: coverUrl ? post.coverCaption : undefined,
+    logoSrc,
   });
 }
 
@@ -272,7 +274,7 @@ if (previewMode) {
     const unsubscribe = buildUnsubscribeUrl('preview@example.com');
     const preview = post.description || `A new post is live on ${new URL(post.url).hostname}.`;
     const coverUrl = coverDataUri(post.file, post.cover);
-    const html = renderPostEmailHtml(post, preview, unsubscribe, coverUrl);
+    const html = renderPostEmailHtml(post, preview, unsubscribe, coverUrl, logoDataUri());
     const doc = wrapEmailPreviewDocument(html, { title: `Email preview: ${stripMarkdown(post.title)}` });
 
     const outFile = path.join(outDir, `email-preview-${post.slug}.html`);

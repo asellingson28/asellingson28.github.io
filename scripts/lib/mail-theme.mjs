@@ -9,6 +9,36 @@ export { stripMarkdown };
 // The site's public domain, as referenced in outbound email copy.
 export const SITE_DOMAIN = 'aselling.us';
 
+// Site mark (public/email-logo.png), a flattened PNG of the nav's RecordMark
+// component — email clients don't reliably render inline SVG, so this is a
+// pre-rasterized, transparent-background copy kept in sync by hand. Default
+// src for renderEmailCard: the live URL, which is correct for real scheduled
+// sends (notify-blog-subscribers.mjs runs as a post-deploy job, and the
+// confirmation-email cron only ever runs against an already-deployed main) —
+// but wrong for anything sent before this file has been pushed/deployed, so
+// dev-only senders override logoSrc; see logoAttachment()/logoDataUri() below.
+export const LOGO_URL = `https://${SITE_DOMAIN}/email-logo.png`;
+const LOGO_FILE = path.resolve('public/email-logo.png');
+export const LOGO_CID = 'site-logo';
+
+// A cid: attachment for contexts where LOGO_URL isn't reachable yet — mainly
+// the dev-only test-email buttons, which send real mail before anything's
+// been deployed. Renders identically to a remote image in real inboxes,
+// unlike a data: URI (Gmail and others strip those on receipt — see
+// coverDataUri below) or the raw.githubusercontent.com trick coverRawUrl
+// uses for post covers (same deploy-lag problem as the live site: it only
+// serves what's been pushed to main).
+export function logoAttachment() {
+  return { filename: 'email-logo.png', path: LOGO_FILE, cid: LOGO_CID };
+}
+
+// Inline data: URI for the browser-only preview (`notify:blog --preview`,
+// opened directly as a .html file with no MIME envelope to hang a cid:
+// attachment off of).
+export function logoDataUri() {
+  return `data:image/png;base64,${fs.readFileSync(LOGO_FILE).toString('base64')}`;
+}
+
 // Blog post covers live in src/content/blog/ and are only reachable through
 // Astro's content-image pipeline (hashed /_astro/* output) once built —
 // scripts here run outside that pipeline and can't predict the hash. The
@@ -182,6 +212,7 @@ export function renderEmailCard({
   bodyHtml,
   cta,
   footerHtml,
+  logoSrc = LOGO_URL,
 }) {
   const t = EMAIL_THEME;
   const titleMarkup = titleHtml ?? escapeHtml(title);
@@ -209,7 +240,10 @@ ${coverCaptionHtml ? `<p data-role="cover-caption" style="margin:6px 0 0;font-fa
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${t.card};border:1px solid ${t.line};">`,
     // hairline title-block rule, gold -> line -> blue, echoing the site nav
     `<tr><td style="height:3px;line-height:3px;font-size:0;background:${t.gold};background-image:linear-gradient(90deg, ${t.gold} 0%, ${t.line} 50%, ${t.blueBright} 100%);">&nbsp;</td></tr>`,
-    `<tr><td style="padding:36px 40px 4px;">`,
+    `<tr><td style="padding:28px 40px 0;text-align:center;">`,
+    `<img src="${escapeHtml(logoSrc)}" width="36" height="36" alt="${escapeHtml(SITE_DOMAIN)}" style="display:block;margin:0 auto;width:36px;height:36px;" />`,
+    `</td></tr>`,
+    `<tr><td style="padding:14px 40px 4px;">`,
     `<span style="font-family:${t.fontMono};font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${t.textFaint};">${escapeHtml(eyebrow)}</span>`,
     `</td></tr>`,
     `<tr><td style="padding:6px 40px 18px;">`,
@@ -234,7 +268,7 @@ ${coverCaptionHtml ? `<p data-role="cover-caption" style="margin:6px 0 0;font-fa
 // (scripts/notify-blog-subscribers.mjs) and the dev-only editor preview
 // (scripts/dev-edit-blog.mjs) so the preview can't drift from what
 // subscribers actually get.
-export function renderBlogPostEmail({ title, url, preview, unsubscribe, coverUrl, coverAlt, coverCaption }) {
+export function renderBlogPostEmail({ title, url, preview, unsubscribe, coverUrl, coverAlt, coverCaption, logoSrc }) {
   return renderEmailCard({
     eyebrow: '03 / writing · new post',
     titleHtml: renderInlineMarkdown(title),
@@ -246,6 +280,7 @@ export function renderBlogPostEmail({ title, url, preview, unsubscribe, coverUrl
       : '',
     cta: { href: url, label: 'Read the post →' },
     footerHtml: `sent to subscribers of ${SITE_DOMAIN} &middot; <a href="${escapeHtml(unsubscribe)}" style="color:${EMAIL_THEME.textDim};">unsubscribe</a>`,
+    logoSrc,
   });
 }
 
@@ -269,6 +304,7 @@ export function buildBlogPostMailOptions({
   replyTo,
   subjectPrefix = '',
   attachments,
+  logoSrc,
 }) {
   return {
     from,
@@ -284,7 +320,7 @@ export function buildBlogPostMailOptions({
       '',
       `Unsubscribe: ${unsubscribe}`,
     ].join('\n'),
-    html: renderBlogPostEmail({ title, url, preview, unsubscribe, coverUrl, coverAlt, coverCaption }),
+    html: renderBlogPostEmail({ title, url, preview, unsubscribe, coverUrl, coverAlt, coverCaption, logoSrc }),
     attachments,
     list: { unsubscribe },
     headers: { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
