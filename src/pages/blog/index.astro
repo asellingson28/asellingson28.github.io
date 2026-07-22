@@ -537,7 +537,7 @@ const devJson = import.meta.env.DEV
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-3);
-    align-items: start;
+    align-items: stretch;
   }
   @media (max-width: 860px) {
     .post-editor-layout { grid-template-columns: 1fr; }
@@ -610,11 +610,19 @@ const devJson = import.meta.env.DEV
      mirroring the real /blog/[slug] typography closely enough to catch
      formatting mistakes, without being pixel-exact */
   .post-preview {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(90vh - 2 * var(--space-3));
     border: 1px dashed var(--color-line-bright);
     border-radius: 4px;
     padding: var(--space-3);
     min-width: 0;
     overflow-wrap: break-word;
+  }
+  #post-preview-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
   }
   .post-preview h1 {
     font-family: var(--font-display);
