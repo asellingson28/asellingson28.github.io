@@ -1,7 +1,29 @@
 {
-  "fetchedAt": "2026-07-21T11:19:21.008Z",
+  "fetchedAt": "2026-07-22T11:20:46.788Z",
   "username": "aselling",
   "films": [
+    {
+      "title": "The Strangers",
+      "year": 2008,
+      "link": "https://letterboxd.com/aselling/film/the-strangers/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/4/6/0/1/0/46010-the-strangers-0-600-0-900-crop.jpg?v=62b1d2f33f",
+      "rating": null,
+      "liked": false,
+      "rewatch": false,
+      "watchedDate": "2026-07-22",
+      "review": "this is NOTHING to do with nihilism and a character named meursault >:("
+    },
+    {
+      "title": "The Odyssey",
+      "year": 2026,
+      "link": "https://letterboxd.com/aselling/film/the-odyssey-2026/1/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/1/2/5/5/3/9/4/1255394-the-odyssey-2026-0-600-0-900-crop.jpg?v=1eed046d0c",
+      "rating": null,
+      "liked": true,
+      "rewatch": true,
+      "watchedDate": "2026-07-21",
+      "review": "Powerful. I think that is the best way to describe this film. Powerful. It was only through immense power that this film was able to be executed. And, throughout it all, it is because of this power that The Odyssey captures you in its entirety for 3 hours.To burn the walls of Troy was to burn the world-entire. Including his homeNot once did I have an urge to pull out a phone or get up to pee, unlike the bulk of people walking around or on their phones. Nor did I bring my phone but that is a different story. The sheer power from the film, it's shots, the energy, and most notably, Goransson's soundtrack takes me to a completely different place. It brings me to tears to see a story and culture ingrained in me since childhood come to life. From Polyphemus to the Laestrygonians, to the Shades and the rage in Odysseus' return, every scene had an immense representation of power and scale, while also having emotional aspects which kept it grounded in humanity.\n\nThank you, Christopher Nolan, for keeping cinema alive.\n\nI would like to point out this line from Homer's original text, Alcinous speaking:Explain to us also what sorrow makes you weep as you listen to the tragic story of the Argives and the fall of Troy. The gods were responsible for that, weaving catastrophe into men's lives to make a song for future generations."
+    },
     {
       "title": "Final Destination 3",
       "year": 2006,
@@ -496,28 +518,6 @@
       "rewatch": true,
       "watchedDate": "2026-06-14",
       "review": "the best intro scene in cinematic history"
-    },
-    {
-      "title": "Wild Things",
-      "year": 1998,
-      "link": "https://letterboxd.com/aselling/film/wild-things/1/",
-      "poster": "https://a.ltrbxd.com/resized/alternative-poster/5/1/5/0/6/p/5VZvMqsI477tNyyBmcasNEA8Et0-0-600-0-900-crop.jpg?v=16bc87c11f",
-      "rating": null,
-      "liked": true,
-      "rewatch": true,
-      "watchedDate": "2026-06-14",
-      "review": "not gay enough"
-    },
-    {
-      "title": "The Graduate",
-      "year": 1967,
-      "link": "https://letterboxd.com/aselling/film/the-graduate/",
-      "poster": "https://a.ltrbxd.com/resized/alternative-poster/2/7/1/8/3/p/qtVvdSsm2hvau6ItLe4gWdFKe2M-0-600-0-900-crop.jpg?v=2c961cc945",
-      "rating": null,
-      "liked": true,
-      "rewatch": false,
-      "watchedDate": "2026-06-13",
-      "review": "absolutely loved this. Dustin Hoffman has a skill for playing quirky, awkward characters; after seeing Rain man (1988), I was hooked. When Ben goes to stop the bellman from ringing the bell, I was laughing for too long. This movie is mentioned in (500) Days of Summer, I had to figure out the significance. Definitely a fun feel good movie with a sparkle of erotic humor.\n\nkinda over the Simon and Garfunkel tho"
     },
     {
       "title": "Oppenheimer",
