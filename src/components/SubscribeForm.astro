@@ -119,7 +119,13 @@ import { WORKER_URL } from '../lib/subscribe-worker.mjs';
           alert(`Could not send test email: ${error}`);
           return;
         }
-        alert(`Test confirmation email sent to ${to}. Its "Confirm subscription" link is a placeholder and won't actually confirm anything.`);
+        if (
+          confirm(
+            `Test confirmation email sent to ${to}. Its "Confirm subscription" link is a placeholder and won't actually confirm anything. Open Gmail to check?`
+          )
+        ) {
+          window.open('https://mail.google.com/mail/u/0/#inbox', '_blank');
+        }
       } finally {
         button.disabled = false;
         button.textContent = 'send test';

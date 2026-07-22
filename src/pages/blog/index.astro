@@ -193,7 +193,6 @@ const devJson = import.meta.env.DEV
               + insert image
               <input type="file" id="insert-image-input" accept="image/*" ${p ? '' : 'disabled'} />
             </label>
-            <textarea name="body" rows="16" placeholder="Body (markdown)">${esc(p?.body ?? '')}</textarea>
             <div class="row">
               <button type="submit">save post</button>
               <button type="button" id="post-preview-refresh">refresh preview</button>
@@ -203,6 +202,7 @@ const devJson = import.meta.env.DEV
               <input type="email" id="test-email-address" placeholder="dummy@address.com" title="Address to send a real test copy of the notification email to" />
               <button type="button" id="post-send-test-email">send test email</button>
             </div>
+            <textarea name="body" rows="16" placeholder="Body (markdown)">${esc(p?.body ?? '')}</textarea>
           </form>
           <div id="post-preview" class="post-preview">
             <span class="mono-label">preview</span>
@@ -312,7 +312,9 @@ const devJson = import.meta.env.DEV
             alert(`Could not send test email: ${error}`);
             return;
           }
-          alert(`Test email sent to ${to}.`);
+          if (confirm(`Test email sent to ${to}. Open Gmail to check?`)) {
+            window.open('https://mail.google.com/mail/u/0/#inbox', '_blank');
+          }
         } finally {
           button.disabled = false;
           button.textContent = 'send test email';
