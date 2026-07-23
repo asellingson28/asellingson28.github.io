@@ -23,7 +23,7 @@ interface MapPlace {
   coords: [number, number];
   date?: string;
   detail?: string;
-  images: string[];
+  images: { thumb: string; full: string }[];
   /** original filenames backing `images`, in the same order — dev only, for photo reordering */
   imageFiles?: string[];
   /** raw markdown body — only included in dev, for the edit form */
@@ -48,11 +48,16 @@ for (const entry of entries) {
     .map((p) => galleries[p].default)
     .filter((img) => !listed.some((l) => l.src === img.src));
 
-  const images: string[] = [];
+  const images: { thumb: string; full: string }[] = [];
   const imageFiles: string[] = [];
   for (const img of [...listed, ...folderImgs]) {
-    const optimized = await getImage({ src: img, width: 560, format: 'webp' });
-    images.push(optimized.src);
+    // thumb: small grid/cover crop. full: larger source for the fullscreen lightbox —
+    // reusing the thumb there meant a 560px image got stretched to viewport width and looked blurry.
+    const [thumb, full] = await Promise.all([
+      getImage({ src: img, width: 560, format: 'webp', quality: 80 }),
+      getImage({ src: img, width: Math.min(img.width, 1920), format: 'webp', quality: 82 }),
+    ]);
+    images.push({ thumb: thumb.src, full: full.src });
     // raw (pre-optimization) src is a real filesystem path in dev — reused to let
     // the timeline carousel's reorder buttons rename files on disk (see dev-add-place.mjs)
     if (import.meta.env.DEV) imageFiles.push(img.src.split('/').pop()?.split('?')[0] ?? '');
@@ -213,7 +218,7 @@ const timelinePlaces = mapPlaces
               data-slug={place.imageFiles ? place.id : undefined}
             >
               <div class="post-cover-frame">
-                <img src={place.images[0]} alt={`Photo from ${place.name}`} loading="lazy" />
+                <img src={place.images[0].thumb} alt={`Photo from ${place.name}`} loading="lazy" />
                 {place.images.length > 1 && (
                   <>
                     <button type="button" class="post-cover-arrow post-cover-prev" aria-label="Previous photo">
@@ -258,7 +263,7 @@ const timelinePlaces = mapPlaces
     coords: [number, number];
     date?: string;
     detail?: string;
-    images: string[];
+    images: { thumb: string; full: string }[];
     imageFiles?: string[]; // original filenames backing `images`, present in dev only
     notes?: string; // raw markdown, present in dev only
   }
@@ -311,8 +316,8 @@ const timelinePlaces = mapPlaces
   // popups are rebuilt from an HTML string each time they open, so delegate from a static ancestor
   document.addEventListener('click', (e) => {
     const wrap = (e.target as HTMLElement).closest('.popup-img-wrap');
-    const img = wrap?.querySelector('img');
-    if (img) openLightbox(img.src, img.alt);
+    const img = wrap?.querySelector<HTMLImageElement>('img');
+    if (img) openLightbox(img.dataset.full || img.src, img.alt);
   });
 
   interface PlaceMarkerOptions extends L.MarkerOptions {
@@ -357,9 +362,9 @@ const timelinePlaces = mapPlaces
         ?.innerHTML ?? '';
     const imgs = place.images
       .map(
-        (src) => `
+        ({ thumb, full }) => `
         <span class="popup-img-wrap">
-          <img src="${esc(src)}" alt="${esc(place.name)}" loading="lazy" />
+          <img src="${esc(thumb)}" data-full="${esc(full)}" alt="${esc(place.name)}" loading="lazy" />
           <button type="button" class="popup-img-expand" aria-label="Expand photo">
             <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/></svg>
           </button>
@@ -567,19 +572,19 @@ const timelinePlaces = mapPlaces
   // timeline photo carousels: swap the cover img's src, wrap-around at the ends;
   // clicking the image opens the same lightbox as the map popups
   document.querySelectorAll<HTMLElement>('.post-cover[data-images]').forEach((fig) => {
-    const images: string[] = JSON.parse(fig.dataset.images ?? '[]');
+    const images: { thumb: string; full: string }[] = JSON.parse(fig.dataset.images ?? '[]');
     const img = fig.querySelector('img');
     if (!images.length || !img) return;
     const counter = fig.querySelector('.post-cover-count');
     let index = 0;
     const show = (i: number) => {
       index = (i + images.length) % images.length;
-      img.src = images[index];
+      img.src = images[index].thumb;
       if (counter) counter.textContent = `${index + 1} / ${images.length}`;
     };
     fig.querySelector('.post-cover-prev')?.addEventListener('click', () => show(index - 1));
     fig.querySelector('.post-cover-next')?.addEventListener('click', () => show(index + 1));
-    img.addEventListener('click', () => openLightbox(img.src, img.alt));
+    img.addEventListener('click', () => openLightbox(images[index].full, img.alt));
 
     // dev-only: "move" swaps the currently-shown photo with a neighbor and persists
     // the new order by renaming files on disk (see /__add-place/reorder)
