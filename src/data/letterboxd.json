@@ -1,7 +1,18 @@
 {
-  "fetchedAt": "2026-07-22T11:20:46.788Z",
+  "fetchedAt": "2026-07-23T11:20:44.583Z",
   "username": "aselling",
   "films": [
+    {
+      "title": "The Final Destination",
+      "year": 2009,
+      "link": "https://letterboxd.com/aselling/film/the-final-destination/",
+      "poster": "https://a.ltrbxd.com/resized/sm/upload/dm/oa/gw/qk/qQ6IvrEDe5OutlYs1xRQby9gcZE-0-600-0-900-crop.jpg?v=2b994df6a2",
+      "rating": null,
+      "liked": false,
+      "rewatch": true,
+      "watchedDate": "2026-07-23",
+      "review": "The Final Destination found dead in a ditch, replaced by F1 (2025)"
+    },
     {
       "title": "The Strangers",
       "year": 2008,
@@ -507,17 +518,6 @@
       "rewatch": false,
       "watchedDate": "2026-06-14",
       "review": "very ironic that Before I Fall (2017) trailer played on the Blu-ray edition given they are essentially the same movie.\n\nsometimes these groundhog day esque movies are good but it sucks when they can only come up with about 20 minutes of events and reuse it all every few sequences. some good jump scares though."
-    },
-    {
-      "title": "Big Hero 6",
-      "year": 2014,
-      "link": "https://letterboxd.com/aselling/film/big-hero-6/",
-      "poster": "https://a.ltrbxd.com/resized/alternative-poster/1/2/9/6/6/2/p/5ykMRp16maTawCZCW4XdwtBJVkV-0-600-0-900-crop.jpg?v=c0499df84c",
-      "rating": null,
-      "liked": true,
-      "rewatch": true,
-      "watchedDate": "2026-06-14",
-      "review": "the best intro scene in cinematic history"
     },
     {
       "title": "Oppenheimer",
