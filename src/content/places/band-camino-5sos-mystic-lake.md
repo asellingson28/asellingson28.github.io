@@ -5,3 +5,5 @@ location: "Mystic Lake Casino Hotel, Prior Lake, Minnesota"
 date: "22 July 2026"
 detail: "Mystic Lake Amphitheater"
 ---
+
+genuinely the craziest concert I will ever experience
