@@ -1,17 +1,39 @@
 {
-  "fetchedAt": "2026-07-23T11:20:44.583Z",
+  "fetchedAt": "2026-07-24T11:13:41.560Z",
   "username": "aselling",
   "films": [
+    {
+      "title": "Final Destination Bloodlines",
+      "year": 2025,
+      "link": "https://letterboxd.com/aselling/film/final-destination-bloodlines/",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/5/0/2/6/2/2/502622-final-destination-bloodlines-0-600-0-900-crop.jpg?v=3c04d3a110",
+      "rating": null,
+      "liked": true,
+      "rewatch": false,
+      "watchedDate": "2026-07-23",
+      "review": "This review may contain spoilers.\n\ngenuinely this was so freaking good!! Richard Harmon absolutely crushes every scene he is in, incredible cinematography and color grading, some very unique deaths with insane irrational fears. The pan to the babies in the hospital was so funny but quite enjoyable\n\nI wish I had not missed this in theatres."
+    },
+    {
+      "title": "Final Destination 5",
+      "year": 2011,
+      "link": "https://letterboxd.com/aselling/film/final-destination-5/",
+      "poster": "https://a.ltrbxd.com/resized/sm/upload/0e/kp/hn/3l/nDzbtN56RXRJL4mpFZ3mdAW6so2-0-600-0-900-crop.jpg?v=356b9f312f",
+      "rating": null,
+      "liked": true,
+      "rewatch": false,
+      "watchedDate": "2026-07-23",
+      "review": "what the hell is this workplace environment?? just a few hr violationsDo you come with subtitlesbro holy ending"
+    },
     {
       "title": "The Final Destination",
       "year": 2009,
       "link": "https://letterboxd.com/aselling/film/the-final-destination/",
       "poster": "https://a.ltrbxd.com/resized/sm/upload/dm/oa/gw/qk/qQ6IvrEDe5OutlYs1xRQby9gcZE-0-600-0-900-crop.jpg?v=2b994df6a2",
       "rating": null,
-      "liked": false,
+      "liked": true,
       "rewatch": true,
       "watchedDate": "2026-07-23",
-      "review": "The Final Destination found dead in a ditch, replaced by F1 (2025)"
+      "review": "The Final Destination found dead in a ditch, replaced by F1 (2025). get brain rot dave franco out of here. It wasn't as bad as I expecting; some of the deaths were pretty good, but not the casting or acting. Too much cgi"
     },
     {
       "title": "The Strangers",
@@ -496,28 +518,6 @@
       "rewatch": false,
       "watchedDate": "2026-06-15",
       "review": "whoever said \"This is just La La Land's evil twin\" made it make so much sense yet no sense still. Somehow very pulp fictionesque. Some of it was about dual roles, some of it about the struggle of acting, and I guess the economic issues of Hollywood. lets hope im right."
-    },
-    {
-      "title": "Happy Death Day 2U",
-      "year": 2019,
-      "link": "https://letterboxd.com/aselling/film/happy-death-day-2u/",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/4/4/1/8/5/6/441856-happy-death-day-2u-0-600-0-900-crop.jpg?v=05ac8783bc",
-      "rating": null,
-      "liked": false,
-      "rewatch": false,
-      "watchedDate": "2026-06-14",
-      "review": "Hard Times suicide montage will live on in cinematic history"
-    },
-    {
-      "title": "Happy Death Day",
-      "year": 2017,
-      "link": "https://letterboxd.com/aselling/film/happy-death-day/",
-      "poster": "https://a.ltrbxd.com/resized/sm/upload/zf/k0/fc/si/cTaEIUYTt52ooq9quVbAQ7NpGwo-0-600-0-900-crop.jpg?v=7b51a4b743",
-      "rating": null,
-      "liked": false,
-      "rewatch": false,
-      "watchedDate": "2026-06-14",
-      "review": "very ironic that Before I Fall (2017) trailer played on the Blu-ray edition given they are essentially the same movie.\n\nsometimes these groundhog day esque movies are good but it sucks when they can only come up with about 20 minutes of events and reuse it all every few sequences. some good jump scares though."
     },
     {
       "title": "Oppenheimer",
